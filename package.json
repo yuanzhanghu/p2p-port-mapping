@@ -1,0 +1,38 @@
+{
+  "name": "p2p-port-mapping",
+  "version": "0.0.1",
+  "description": "mapping local server port to another machine across NAT, using webrtc data channel.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "postinstall": "node _postinstall.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuanzhanghu/p2p-port-mapping.git"
+  },
+  "keywords": [
+    "p2p",
+    "mapping",
+    "webrtc",
+    "data",
+    "channel"
+  ],
+  "author": "Yuanzhang Hu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yuanzhanghu/p2p-port-mapping/issues"
+  },
+  "homepage": "https://github.com/yuanzhanghu/p2p-port-mapping#readme",
+  "dependencies": {
+    "debug": "^4.1.1",
+    "nanoid": "^3.1.9",
+    "socket.io": "^2.2.0",
+    "winston": "^3.2.1",
+    "wrtc": "^0.4.2"
+  },
+  "devDependencies": {
+    "jest": "^24.9.0",
+    "pkg": "^4.4.0"
+  }
+}
