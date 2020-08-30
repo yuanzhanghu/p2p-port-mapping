@@ -26,7 +26,7 @@ added mapping: port 22 ====> serverKey:qMdtjthkW
 (windows) node p2p-mapping.js --start-service
 
 2. on computer B, mapping serverKey in to port:
-(linux and windows) node p2p-mapping.js --add --mapping-in --server-key qMdtjthkW --port 2222
+(linux and windows) node p2p-mapping.js --add --mapping-in -n sshTunnel --server-key qMdtjthkW --port 2222
 (linux) sudo `which node` p2p-mapping.js --start-service
 (windows) node p2p-mapping.js --start-service
 
