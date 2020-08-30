@@ -1,5 +1,5 @@
 # p2p-mappig
-p2p port forwarding/mapping across NAT, Access your server anywhere.
+p2p port forwarding/mapping across NAT/firewalls, Access your server anywhere.
 ## features
 ```
 - p2p port forwarding/mapping, no data relay server is needed.
@@ -15,22 +15,31 @@ p2p port forwarding/mapping across NAT, Access your server anywhere.
 3. cd p2p-port-mapping
 4. npm install
 ```
-## usage
+## usage(verified on linux)
 ```
-Assume that we want to do tcp port forwarding from computer A, port 22 to computer B, port 2222
-1. on computer A, do:
-user@hostA:~/workspace/p2p-port-mapping$ node p2p-mapping-server.js 22
-2020-06-04 08:51:22 info: server_registered, local port:22 ====> serverKey:6YQHup35b
-// here we got serverKey from above command, which will be used on computer B
+Assume that we want to do ssh from computer B to computer A across firewalls, we can do port mapping like:
+1. on computer A, mapping port out to serverKey:
+user@hostA:~/workspace/p2p-port-mapping$ node p2p-mapping.js --add --mapping-out --port 22
+added mapping: port 22 ====> serverKey:**qMdtjthkW**
+user@hostA:~/workspace/p2p-port-mapping$ sudo `which node` p2p-mapping.js --start-service
 
-2. on computer B, do:
-user@hostB:~/workspace/p2p-port-mapping$ node p2p-mapping-client.js 6YQHup35b 2222
-2020-06-04 08:56:22 info: client registered
-2020-06-04 08:56:23 info: tunnel established. serverKey:6YQHup35b ====> local port:2222
+2. on computer B, mapping serverKey in to port:
+user@hostB:~/workspace/p2p-port-mapping$ node p2p-mapping.js --add --mapping-in --server-key **qMdtjthkW** --port 2222
+user@hostB:~/workspace/p2p-port-mapping$ sudo `which node` p2p-mapping.js --start-service
 
 3. now we can do this on B:
 'ssh user@localhost -p 2222"
 above command will ssh to A actually.
+
+4. to stop the service: 
+sudo `which node` p2p-mapping.js --stop-service
+
+5. to list the status of service: 
+node p2p-mapping.js --list
+
+6. more helps
+node p2p-mapping.js --help
+
 ```
 ## contact
 QQ交流群: 872893118

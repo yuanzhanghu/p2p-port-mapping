@@ -25,8 +25,12 @@
   },
   "homepage": "https://github.com/yuanzhanghu/p2p-port-mapping#readme",
   "dependencies": {
+    "commander": "^6.1.0",
     "debug": "^4.1.1",
+    "jayson": "^3.3.4",
     "nanoid": "^3.1.9",
+    "node-linux": "^0.1.12",
+    "node-windows": "^1.0.0-beta.5",
     "socket.io": "^2.2.0",
     "winston": "^3.2.1",
     "wrtc": "^0.4.2"

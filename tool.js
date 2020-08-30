@@ -1,7 +1,9 @@
 const crypto = require('crypto')
 const os = require('os')
 const delay = ms => new Promise(res => setTimeout(res, ms))
+const { customAlphabet } = require('nanoid')
 
+var idGenerate = customAlphabet('23456789abcdefghijkmnpqrstuvwxyzABCDEFGHIJKLMNPQRSTUVWXYZ', 9) //=> "4f9Dd1A42"
 
 function encrypt(text, word){
   var cipher = crypto.createCipher('aes-256-cbc', word)
@@ -66,4 +68,4 @@ let getLocalIPs = () => {
   return addresses
 }
 
-module.exports = { delay, encrypt, decrypt, createWord, buf2obj, obj2buf, encodeIdBuf, decodeIdBuf, getLocalIPs }
+module.exports = { idGenerate, delay, encrypt, decrypt, createWord, buf2obj, obj2buf, encodeIdBuf, decodeIdBuf, getLocalIPs }

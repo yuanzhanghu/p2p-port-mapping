@@ -1,10 +1,7 @@
 const EventEmitter = require('events')
-const { customAlphabet } = require('nanoid')
-const idGenerate = customAlphabet('23456789abcdefghijkmnpqrstuvwxyzABCDEFGHIJKLMNPQRSTUVWXYZ', 9) //=> "4f9Dd1A42"
-
 const WebRTC = require('./webRTC')
 const wrtc = require('wrtc')
-const {delay} = require('./tool')
+const {idGenerate, delay} = require('./tool')
 
 class MappingClient extends EventEmitter {
   // const localServer = net.createServer()

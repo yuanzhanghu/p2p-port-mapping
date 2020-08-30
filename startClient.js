@@ -1,14 +1,13 @@
 const net = require('net')
 const EventEmitter = require('events')
-const { customAlphabet } = require('nanoid')
-const idGenerate = customAlphabet('23456789abcdefghijkmnpqrstuvwxyzABCDEFGHIJKLMNPQRSTUVWXYZ', 9) //=> "4f9Dd1A42"
-const { delay } = require('./tool')
+const { idGenerate, delay } = require('./tool')
 const SignalClient = require('./signalClient')
 const MappingClient = require('./mappingClient')
 const { Logger }= require('./mainLog')
 
 
-var start = async ({logger, localListenPort, serverKey, signalAddress, signalPort}) => {
+var startClient = async ({localListenPort, serverKey,logLevel='info', signalAddress='p2p.ai1to1.com', signalPort=15001}) => {
+    const logger =  Logger({ moduleName:'mappingClient', logLevel})
     // const moduleName = `serverStart_serverId${serverId}_${serverName}`
     const netCreateConnection = net.createConnection
     const serviceKey_client = idGenerate()
@@ -21,7 +20,7 @@ var start = async ({logger, localListenPort, serverKey, signalAddress, signalPor
     })
 
 
-    const mapClient = new MappingClient({ logger, serverKey, serviceKey_client, localServer, signalPort, signalAddress, signalClient, })
+    let mapClient = new MappingClient({ logger, serverKey, serviceKey_client, localServer, signalPort, signalAddress, signalClient, })
     mapClient.on('updateMessageBox', messageBox => {
       logger.debug('updateMessageBox', messageBox)
     })
@@ -30,6 +29,7 @@ var start = async ({logger, localListenPort, serverKey, signalAddress, signalPor
     })
     mapClient.on('client_registered', clientId => {
       logger.info(`client registered`)
+      mapClient.registered = true
       mapClient.createPeer()
     })
     mapClient.on('serverMsg', msg => {
@@ -40,17 +40,11 @@ var start = async ({logger, localListenPort, serverKey, signalAddress, signalPor
       await delay(1000)
       if (mapClient.peer_connected) {
         logger.info(`tunnel established. serverKey:${serverKey} ====> local port:${localListenPort}`)
-        return true
+        return mapClient
       }
     }
     logger.error(`timeout:${timeout}, failed to establish tunnel`)
-    return false
+    return mapClient
 }
 
-const signalAddress = 'p2p.ai1to1.com'
-const signalPort = 15001
-const serverKey = process.argv[2]
-const localListenPort = process.argv[3]
-const logger =  Logger({ moduleName:'mappingClient', logLevel:'info'})
-
-start({logger, localListenPort, serverKey, signalAddress, signalPort})
+module.exports = startClient
