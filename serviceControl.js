@@ -56,11 +56,10 @@ var stop = () => {
   // Create a new service object
   var svc = new Service(serviceConfig)
   // Listen for the "uninstall" event so we know when it's done.
-  svc.on('uninstall',function(){
+  svc.on('uninstall',function() {
     console.log('Uninstall complete.')
-    console.log('The service exists: ',svc.exists())
   })
-  svc.on('stop',function(){
+  svc.on('stop',function() {
     // Uninstall the service.
     console.log('p2pmapping service stopped.')
     svc.uninstall()
