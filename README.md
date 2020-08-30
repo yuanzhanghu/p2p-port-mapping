@@ -17,7 +17,6 @@ p2p port forwarding/mapping across NAT/firewalls, Access your server anywhere.
 4. npm install
 ```
 ## Usage(verified on linux)
-```
 Assume that we want to do ssh from computer B to computer A across firewalls, we can do port mapping like:
 1. on computer A, mapping port out to serverKey:
 user@hostA:~/workspace/p2p-port-mapping$ node p2p-mapping.js --add --mapping-out --port 22
@@ -41,7 +40,6 @@ node p2p-mapping.js --list
 6. more helps
 node p2p-mapping.js --help
 
-```
 ## Contact
 QQ交流群: 872893118
 email: huyuanzhang@gmail.com
