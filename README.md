@@ -17,29 +17,31 @@ p2p port forwarding/mapping across NAT/firewalls, Access your server anywhere.
 4. npm install
 ```
 ## Usage(verified on linux)
+```
 Assume that we want to do ssh from computer B to computer A across firewalls, we can do port mapping like:
-#### on computer A, mapping port out to serverKey:
-**node p2p-mapping.js --add --mapping-out --port 22**
+1. on computer A, mapping port out to serverKey:
+user@hostA:~/workspace/p2p-port-mapping$ node p2p-mapping.js --add --mapping-out --port 22
 added mapping: port 22 ====> serverKey:qMdtjthkW
-**sudo `which node` p2p-mapping.js --start-service**
+user@hostA:~/workspace/p2p-port-mapping$ sudo `which node` p2p-mapping.js --start-service
 
-#### on computer B, mapping serverKey in to port:
-**node p2p-mapping.js --add --mapping-in --server-key qMdtjthkW --port 2222**
-**sudo `which node` p2p-mapping.js --start-service**
+2. on computer B, mapping serverKey in to port:
+user@hostB:~/workspace/p2p-port-mapping$ node p2p-mapping.js --add --mapping-in --server-key qMdtjthkW --port 2222
+user@hostB:~/workspace/p2p-port-mapping$ sudo `which node` p2p-mapping.js --start-service
 
-#### now we can do this on B:
-**ssh user@localhost -p 2222**
+3. now we can do this on B:
+'ssh user@localhost -p 2222"
 above command will ssh to A actually.
 
-#### to stop the service: 
-**sudo `which node` p2p-mapping.js --stop-service**
+4. to stop the service: 
+sudo `which node` p2p-mapping.js --stop-service
 
-#### to list the status of service: 
-**node p2p-mapping.js --list**
+5. to list the status of service: 
+node p2p-mapping.js --list
 
-#### more helps:
-**node p2p-mapping.js --help**
+6. more helps
+node p2p-mapping.js --help
 
+```
 ## Contact
 QQ交流群: 872893118
 email: huyuanzhang@gmail.com
