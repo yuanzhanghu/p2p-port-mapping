@@ -44,7 +44,8 @@ var startClient = async ({localListenPort, serverKey,logLevel='info', signalAddr
       }
     }
     logger.error(`timeout:${timeout}, failed to establish tunnel`)
-    return mapClient
+    mapClient.close()
+    return null
 }
 
 module.exports = startClient

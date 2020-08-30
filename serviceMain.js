@@ -32,13 +32,27 @@ server.http().listen(7002);
   const signalPort = 15001
   const logLevel = 'info'
 
-  config.mappingOutList.forEach( async ({port, serverKey}, index) => {
-    console.log(`starting mappingOut, port:${port}, serverKey:${serverKey}`)
-    config.mappingOutList[index].mappingServer = await startServer({server_port:port, serverKey, logLevel, signalAddress, signalPort})
-  })
-  await delay(5000)
-  config.mappingInList.forEach( async ({port, serverKey, name}, index) => {
-    console.log(`starting mappingIn, port:${port}, serverKey:${serverKey}, name:${name}`)
-    config.mappingInList[index].mappingClient = await startClient({localListenPort:port, serverKey, logLevel, signalAddress, signalPort})
-  })
+  while (true) {
+    config.mappingOutList.forEach( async ({port, serverKey}, index) => {
+      if (!config.mappingOutList[index].mappingServer || !config.mappingOutList[index].mappingServer.registered) {
+        console.log(`starting mappingOut, port:${port}, serverKey:${serverKey}`)
+        config.mappingOutList[index].mappingServer = await startServer({server_port:port, serverKey, logLevel, signalAddress, signalPort})
+      }
+    })
+    await delay(5000)
+    config.mappingInList.forEach( async ({port, serverKey, name}, index) => {
+      if (!config.mappingInList[index].mappingClient || !config.mappingInList[index].mappingClient.registered ||
+          !config.mappingInList[index].mappingClient.peer_connected) {
+        if (config.mappingInList[index].mappingClient) {
+          await config.mappingInList[index].mappingClient.close()
+        }
+        console.log(`starting mappingIn, port:${port}, serverKey:${serverKey}, name:${name}`)
+        let mappingClient = await startClient({localListenPort:port, serverKey, logLevel, signalAddress, signalPort})
+        if (mappingClient) {
+          config.mappingInList[index].mappingClient = mappingClient
+        }
+      }
+    })
+    await delay(60000)
+  }
 })()

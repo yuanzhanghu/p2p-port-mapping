@@ -84,7 +84,7 @@ var addMappingOut = ({port}) => {
   saveConfig(JSON.stringify(config))
 }
 
-var addMappingIn = ({serverKey, port}) => {
+var addMappingIn = ({serverKey, port, name}) => {
   let found = false
   config.mappingInList.forEach(item => {
     if (item.port === port) {
@@ -95,7 +95,7 @@ var addMappingIn = ({serverKey, port}) => {
     console.log(`port ${port} exists`)
     return
   }
-  config.mappingInList.push({serverKey, port})
+  config.mappingInList.push({serverKey, port, name})
   saveConfig(JSON.stringify(config))
 }
 
