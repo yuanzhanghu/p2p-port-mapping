@@ -38,13 +38,33 @@ above command will ssh to A actually.
 (linux) sudo `which node` p2p-mapping.js --stop-service
 (windows) node p2p-mapping.js --stop-service
 
-5. to list the status of service: 
+5. to delete mapping out port: 
+(linux and windows) node p2p-mapping.js --delete --mapping-out --port 22
+
+6. to delete mapping in port: 
+(linux and windows) node p2p-mapping.js --delete --mapping-in --port 2222
+
+7. to list the status of service: 
 node p2p-mapping.js --list
 
-6. more helps
+8. more helps
 node p2p-mapping.js --help
 
 ```
+## Example (accessing windows remote desktop across firewalls)
+Assume that we want to do remote desktop control from B to A(windows)
+1. on computer A(windows):
+node p2p-mapping.js --add --mapping-out --port 3389
+  added mapping: port 3389 ====> serverKey:iweos23kW
+node p2p-mapping.js --start-service
+
+2. on computer B:
+(linux and windows) node p2p-mapping.js --add --mapping-in -n winRDP --server-key iweos23kW --port 4001
+(linux) sudo `which node` p2p-mapping.js --start-service
+(windows) node p2p-mapping.js --start-service
+
+3. now we can access A's desktop from B by accessing localhost:4001
+
 ## Contact
 QQ交流群: 872893118
 email: huyuanzhang@gmail.com
