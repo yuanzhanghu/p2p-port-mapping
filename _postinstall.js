@@ -4,6 +4,7 @@
 // Get platform from node
 var os = require('os');
 var platform = os.platform();
+var arch = os.arch();
 // Call child process and execute
 var exec = require('child_process').exec;
 
@@ -14,12 +15,13 @@ if (platform === 'darwin' || platform == 'linux') {
     cmdstr = `copy .\\pre-built\\${platform}_wrtc\\* .\\node_modules\\wrtc\\build\\Release /y`
 }
 
-exec(cmdstr, function (error, stdout, stderr) {
-    console.log(stdout)
-    if (error !== null) {
-        console.error(error)
-    } else {
-        console.log('copied pre-built wrtc binary.')
-    }
-})
-
+if (arch === 'x64') {
+    exec(cmdstr, function (error, stdout, stderr) {
+        console.log(stdout)
+        if (error !== null) {
+            console.error(error)
+        } else {
+            console.log('copied pre-built wrtc binary.')
+        }
+    })
+}
