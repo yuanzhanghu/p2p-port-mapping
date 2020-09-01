@@ -1,7 +1,7 @@
 # p2p-port-mappig
 p2p port forwarding/mapping across NAT/firewalls, Access your server anywhere.
 <br />
-<a href="https://github.com/yuanzhanghu/p2p-port-mapping/README_Chinese.md"><strong>中文README</strong></a>
+<a href="https://github.com/yuanzhanghu/p2p-port-mapping/blob/master/README_Chinese.md"><strong>中文说明</strong></a>
 ## Features
 ```
 - p2p port forwarding/mapping, no data relay server is needed.
