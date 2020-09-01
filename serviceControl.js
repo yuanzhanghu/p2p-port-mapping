@@ -34,6 +34,8 @@ const serviceConfig = {
   name:'p2pmapping',
   description: 'p2pmapping service',
   script: path.join(__dirname, 'serviceMain.js'),
+  maxRetries:10000,   // to avoid windows service not started
+  maxRestarts:10000,  // to avoid windows service not started
 }
 
 var start = () => {
