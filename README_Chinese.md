@@ -28,7 +28,6 @@ p2p内网穿透, 端口转发/端口映射. 跨NAT和防火墙，从任何地方
 
 ### 使用方法
 假设我们需要从电脑B访问电脑A的windows远程桌面 (跨多个防火墙和NAT)
-
 ```sh
 1. 在电脑A上(windows)上:
 node p2p-mapping.js --add --mapping-out --port 3389
@@ -43,7 +42,7 @@ node p2p-mapping.js --start-service
 3. 现在在B上打开远程桌面客户端(windows 上是mstsc.exe, linux 上是Remmina)， 访问localhost:4001即可访问A的远程桌面
 ```
 
-```
 ### 作者
 QQ交流群: 872893118
+<br />
 email: huyuanzhang@gmail.com
