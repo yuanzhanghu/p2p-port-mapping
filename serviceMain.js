@@ -19,7 +19,11 @@ const server = jayson.server({
     })
     retStr += `mapping port in list:\n`
     config.mappingInList.forEach(item => {
-      retStr += ` name:${item.name}, serverKey:${item.serverKey} ====> port:${item.port}, registered:${item.mappingClient.registered}, connected:${item.mappingClient.peer_connected}`
+      if (item.mappingClient) {
+        retStr += ` serverKey:${item.serverKey} ====> port:${item.port}, registered:${item.mappingClient.registered}, connected:${item.mappingClient.peer_connected}, name:${item.name}`
+      } else {
+        retStr += ` serverKey:${item.serverKey} ====> port:${item.port}, registered:false, connected:false, name:${item.name}`
+      }
       retStr += '\n'
     })
     callback(null, retStr) // callback(err,result)
