@@ -1,5 +1,6 @@
+
 [Unit]
-Description=x11vnc
+Description=x11vnc, Set desktop to auto login and prevent screen locking .. else you will need to deal with Xauth
 Requires=display-manager.service
 After=display-manager.service
 
