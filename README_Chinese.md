@@ -29,17 +29,23 @@ p2p内网穿透, 端口转发/端口映射. 跨NAT和防火墙，从任何地方
 ### 使用方法
 假设我们需要从电脑B访问电脑A的windows远程桌面 (跨多个防火墙和NAT)
 ```sh
-1. 在电脑A上(windows)上:
+1. 在电脑A上(windows)上生成serverKey:
 node p2p-mapping.js --add --mapping-out --port 3389
-  added mapping: port 3389 ====> serverKey:iweos23kW
+  added mapping: port 3389 ====> serverKey:iweos23kW //上面的命令会生成一个serverKey
 node p2p-mapping.js --start-service
 
-2. 在电脑B上:
+2. 在电脑B上, 使用刚刚生成的serverKey:
 (linux或者windows) node p2p-mapping.js --add --mapping-in -n winRDP --server-key iweos23kW --port 4001
 (linux) sudo `which node` p2p-mapping.js --start-service
 (windows) node p2p-mapping.js --start-service
 
-3. 现在在B上打开远程桌面客户端(windows 上是mstsc.exe, linux 上是Remmina)， 访问localhost:4001即可访问A的远程桌面
+3. 现在在B上看看隧道是否已经建立:
+(linux或者windows)node p2p-mapping.js -l
+mapping port out list:
+mapping port in list:
+ name:winRDP, serverKey:iweos23kW ====> port:4001, registered:true, connected:true
+
+4. connected:true表示隧道已经建立, 现在在B上打开远程桌面客户端(windows 上是mstsc.exe, linux 上是Remmina)， 访问localhost:4001即可访问A的远程桌面
 ```
 
 ### 作者
