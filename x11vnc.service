@@ -1,0 +1,14 @@
+[Unit]
+Description=x11vnc
+Requires=display-manager.service
+After=display-manager.service
+
+[Service]
+ExecStart=/usr/bin/x11vnc -forever -localhost -nevershared
+ExecStop=/usr/bin/killall x11vnc
+Restart=on-failure
+RestartPreventExitStatus=255
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
