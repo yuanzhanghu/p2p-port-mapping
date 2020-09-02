@@ -5,7 +5,7 @@ Requires=display-manager.service
 After=display-manager.service
 
 [Service]
-ExecStart=/usr/bin/x11vnc -forever -localhost -nevershared -display :0 -env FD_XDM=1 -auth guess
+ExecStart=/usr/bin/x11vnc -forever -localhost -nevershared -display :0 -auth guess
 ExecStop=/usr/bin/killall x11vnc
 Restart=on-failure
 RestartPreventExitStatus=255
