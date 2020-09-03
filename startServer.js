@@ -6,8 +6,8 @@ const net = require('net')
 const { idGenerate, delay } = require('./tool')
 // const { start } = require('repl')
 
-const startServer = async ({server_port, serverKey, logLever='info', signalAddress='p2p.ai1to1.com', signalPort=15001}) => {
-    const logger =  Logger({ moduleName:'mappingServer', logLevel:'info'})
+const startServer = async ({server_port, serverKey, logLevel='info', signalAddress='p2p.ai1to1.com', signalPort=15001}) => {
+    const logger =  Logger({ moduleName:'mappingServer', logLevel})
     const netCreateConnection = net.createConnection
 
     const onConnectMsg = 'welcome' // send msg to client while connection established.
