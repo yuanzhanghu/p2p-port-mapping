@@ -51,6 +51,9 @@ var start = () => {
     console.log(`service already installed`)
     svc.start()
   })
+  svc.on('start',function(){
+    console.log(`p2pmapping service started`)
+  })
   svc.install()
 }
 
@@ -59,14 +62,12 @@ var stop = () => {
   var svc = new Service(serviceConfig)
   // Listen for the "uninstall" event so we know when it's done.
   svc.on('uninstall',function() {
-    console.log('Uninstall complete.')
+    console.log('service uninstall complete.')
   })
   svc.on('stop',function() {
-    // Uninstall the service.
     console.log('p2pmapping service stopped.')
-    svc.uninstall()
   })
-  svc.stop()
+  svc.uninstall()
 }
 
 var addMappingOut = ({port}) => {
