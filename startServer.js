@@ -28,7 +28,7 @@ const startServer = async ({server_port, serverKey, logLevel='info', signalAddre
       logger.error(`server${serverKey} side status:${status}`)
     })
     p2pMappingServer.on('tunnelsChange', tunnels => {
-      logger.debug(`server${serverKey} side tunnelsChange:${tunnels}`)
+      logger.info(`server ${serverKey} side tunnelsChange:${tunnels}`)
       p2pMappingServer.tunnels = tunnels
     })
     p2pMappingServer.on('clientMsg', ({clientId, buf}) => {

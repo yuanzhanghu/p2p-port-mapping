@@ -31,7 +31,7 @@ p2p内网穿透, 端口转发/端口映射. 跨NAT和防火墙，从任何地方
 ```sh
 1. 在电脑A上(windows)上生成serverKey:
 node p2p-mapping.js --add --mapping-out --port 3389
-  added mapping: port 3389 ====> serverKey:iweos23kW //上面的命令会生成一个serverKey
+  added mapping: port 3389 ====> serverKey:iweos23kW //上面的命令会生成一个serverKey,记住这个serverKey，需要在电脑B上使用
 node p2p-mapping.js --start-service
 
 2. 在电脑B上, 使用刚刚生成的serverKey:

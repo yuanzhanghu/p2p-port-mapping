@@ -7,7 +7,8 @@ After=display-manager.service
 [Service]
 ExecStart=/usr/bin/x11vnc -forever -localhost -nevershared -display :0 -auth guess
 ExecStop=/usr/bin/killall x11vnc
-Restart=on-failure
+Restart=always
+RestartSec=30
 RestartPreventExitStatus=255
 Type=simple
 

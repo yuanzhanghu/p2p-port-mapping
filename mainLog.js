@@ -19,7 +19,7 @@ var Logger = ({ moduleName, logLevel}) => {
             // want to control where the timestamp comes in your final message.
             // Try replacing `format.simple()` above with this:
             //
-            format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+            format.printf(info => `${info.timestamp} ${moduleName} ${info.level}: ${info.message}`)
         ),
         transports: [
             new transports.Console()

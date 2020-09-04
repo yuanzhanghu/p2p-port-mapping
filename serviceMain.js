@@ -37,13 +37,14 @@ server.http().listen(7002);
   const logLevel = 'info'
 
   while (true) {
+    await delay(15000) // wait for close of previous sessions
     config.mappingOutList.forEach( async ({port, serverKey}, index) => {
       if (!config.mappingOutList[index].mappingServer || !config.mappingOutList[index].mappingServer.registered) {
         console.log(`starting mappingOut, port:${port}, serverKey:${serverKey}`)
         config.mappingOutList[index].mappingServer = await startServer({server_port:port, serverKey, logLevel, signalAddress, signalPort})
       }
     })
-    await delay(5000)
+    await delay(2000)
     config.mappingInList.forEach( async ({port, serverKey, name}, index) => {
       if (!config.mappingInList[index].mappingClient || !config.mappingInList[index].mappingClient.registered ||
           !config.mappingInList[index].mappingClient.peer_connected) {
@@ -57,6 +58,6 @@ server.http().listen(7002);
         }
       }
     })
-    await delay(60000)
+    await delay(60000) // wait for timeout of connection
   }
 })()
