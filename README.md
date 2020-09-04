@@ -57,12 +57,12 @@ node p2p-mapping.js --help
 ## Example (accessing windows remote desktop across firewalls)
 ```
 Assume that we want to do remote desktop control from B to A(windows)
-1. on computer A(windows):
+1. on computer A(windows), mapping port to a serverKey:
 node p2p-mapping.js --add --mapping-out --port 3389
-  added mapping: port 3389 ====> serverKey:iweos23kW
+  added mapping: port 3389 ====> serverKey:iweos23kW //write down this serverKey, will be used on B
 node p2p-mapping.js --start-service
 
-2. on computer B:
+2. on computer B, mapping a serverKey to port:
 (linux and windows) node p2p-mapping.js --add --mapping-in -n winRDP --server-key iweos23kW --port 4001
 (linux) sudo `which node` p2p-mapping.js --start-service
 (windows) node p2p-mapping.js --start-service
