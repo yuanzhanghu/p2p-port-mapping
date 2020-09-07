@@ -18,7 +18,7 @@ p2p port forwarding/mapping across NAT/firewalls, Access your server anywhere.
 3. cd p2p-port-mapping
 4. npm install
 ```
-## Usage(verified on linux and windows)
+## Example 1 (verified on linux and windows)
 ```
 Assume that we want to do ssh from computer B to computer A across firewalls, we can do port mapping like:
 1. on computer A, mapping port out to serverKey:
@@ -36,25 +36,8 @@ added mapping: port 22 ====> serverKey:qMdtjthkW   // printed result, here serve
 3. now we can do this on B:
 'ssh user@localhost -p 2222"
 above command will ssh to A actually.
-
-4. to stop the service: 
-(linux) sudo `which node` p2p-mapping.js --stop-service
-(windows) node p2p-mapping.js --stop-service
-
-5. to delete mapping out port: 
-(linux and windows) node p2p-mapping.js --delete --mapping-out --port 22
-
-6. to delete mapping in port: 
-(linux and windows) node p2p-mapping.js --delete --mapping-in --port 2222
-
-7. to list the status of service: 
-node p2p-mapping.js --list
-
-8. more helps
-node p2p-mapping.js --help
-
 ```
-## Example (accessing windows remote desktop across firewalls)
+## Example 2 (accessing windows remote desktop across firewalls)
 ```
 Assume that we want to do remote desktop control from B to A(windows)
 1. on computer A(windows), mapping port to a serverKey:
@@ -68,6 +51,25 @@ node p2p-mapping.js --start-service
 (windows) node p2p-mapping.js --start-service
 
 3. now we can access A's desktop from B by accessing localhost:4001
+```
+## More commands
+```
+1. to stop the service: 
+(linux) sudo `which node` p2p-mapping.js --stop-service
+(windows) node p2p-mapping.js --stop-service
+
+2. to delete mapping out port: 
+(linux and windows) node p2p-mapping.js --delete --mapping-out --port 22
+
+3. to delete mapping in port: 
+(linux and windows) node p2p-mapping.js --delete --mapping-in --port 2222
+
+4. to list the status of service: 
+node p2p-mapping.js --list
+
+5. more helps
+node p2p-mapping.js --help
+
 ```
 ## Contact
 QQ交流群: 872893118
