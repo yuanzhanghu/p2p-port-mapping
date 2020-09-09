@@ -46,10 +46,16 @@ var start = () => {
   svc.on('install',function(){
     console.log(`service installed`)
     svc.start()
+    if (platform == 'linux') {
+      svc.enable()
+    }
   })
   svc.on('alreadyinstalled',function(){
     console.log(`service already installed`)
     svc.start()
+    if (platform == 'linux') {
+      svc.enable()
+    }
   })
   svc.on('start',function(){
     console.log(`p2pmapping service started`)
@@ -67,6 +73,9 @@ var stop = () => {
   svc.on('stop',function() {
     console.log('p2pmapping service stopped.')
   })
+  if (platform === 'linux') {
+    svc.disable()
+  }
   svc.uninstall()
 }
 
