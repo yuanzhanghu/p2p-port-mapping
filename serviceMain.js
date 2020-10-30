@@ -14,13 +14,13 @@ const server = jayson.server({
   displayList: function(args, callback) {
     let retStr = `mapping port out list:\n`
     config.mappingOutList.forEach(item => {
-      retStr += ` port:${item.port} ====> serverKey:${item.serverKey}, registered:${item.mappingServer.registered}, tunnels:${item.mappingServer.tunnels}`
+      retStr += ` port:${item.port} ====> serverKey:${item.serverKey}, registered:${item.mappingServer?item.mappingServer.registered:null}, tunnels:${item.mappingServer?item.mappingServer.tunnels:null}`
       retStr += '\n'
     })
     retStr += `mapping port in list:\n`
     config.mappingInList.forEach(item => {
       if (item.mappingClient) {
-        retStr += ` serverKey:${item.serverKey} ====> port:${item.port}, registered:${item.mappingClient.registered}, connected:${item.mappingClient.peer_connected}, name:${item.name}`
+        retStr += ` serverKey:${item.serverKey} ====> port:${item.port}, registered:${item.mappingClient?item.mappingClient.registered:null}, connected:${item.mappingClient?item.mappingClient.peer_connected:null}, name:${item.name}`
       } else {
         retStr += ` serverKey:${item.serverKey} ====> port:${item.port}, registered:false, connected:false, name:${item.name}`
       }
