@@ -22,16 +22,23 @@ p2p port forwarding/mapping across NAT/firewalls, Access your server anywhere.
 ```
 Assume that we want to do ssh from computer B to computer A across firewalls, we can do port mapping like:
 1. on computer A, mapping port out to serverKey:
-(linux and windows) node p2p-mapping.js --add --mapping-out --port 22
-added mapping: port 22 ====> serverKey:qMdtjthkW   // printed result, here serverKey is generated
-(linux) sudo `which node` p2p-mapping.js --start-service
-(windows) node p2p-mapping.js --start-service
+If A is linux:
+  node p2p-mapping.js --add --mapping-out --port 22
+    added mapping: port 22 ====> serverKey:qMdtjthkW   // printed result, here serverKey is generated
+  sudo `which node` p2p-mapping.js --start-service
+If A is windows:
+  node p2p-mapping.js --add --mapping-out --port 22
+    added mapping: port 22 ====> serverKey:qMdtjthkW   // printed result, here serverKey is generated
+  node p2p-mapping.js --start-service
 
 2. on computer B, mapping serverKey in to port:
 // here serverKey is used on computer B
-(linux and windows) node p2p-mapping.js --add --mapping-in -n sshTunnel --server-key qMdtjthkW --port 2222
-(linux) sudo `which node` p2p-mapping.js --start-service
-(windows) node p2p-mapping.js --start-service
+If B is linux:
+  node p2p-mapping.js --add --mapping-in -n sshTunnel --server-key qMdtjthkW --port 2222
+  sudo `which node` p2p-mapping.js --start-service
+If B is windows:
+  node p2p-mapping.js --add --mapping-in -n sshTunnel --server-key qMdtjthkW --port 2222
+  node p2p-mapping.js --start-service
 
 3. now we can do this on B:
 'ssh user@localhost -p 2222"
