@@ -1,11 +1,11 @@
 {
   "name": "p2p-port-mapping",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "mapping local server port to another machine across NAT, using webrtc data channel.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "jest",
-    "postinstall": "node _postinstall.js"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -28,10 +28,10 @@
     "commander": "^6.1.0",
     "debug": "^4.1.1",
     "jayson": "^3.3.4",
-    "nanoid": "^3.1.9",
-    "socket.io": "^2.2.0",
+    "node-datachannel": "^0.5.0",
+    "socket.io-client": "^4.7.2",
     "winston": "^3.2.1",
-    "wrtc": "^0.4.2"
+    "yargs": "^17.7.2"
   },
   "optionalDependencies": {
     "node-linux": "yuanzhanghu/node-linux",

@@ -1,4 +1,4 @@
-const { Logger } = require('../mainLog')
+const { Logger } = require('../mylog')
 
 beforeEach(() => {
   // initializeCityDatabase();
@@ -10,7 +10,7 @@ afterEach(() => {
 
 test('logLevel info', async () => {
   // expect(isCity('Vienna')).toBeTruthy();
-  const logger =  Logger({ moduleName:'mappingServer', logLevel:'info'})
+  const logger = Logger({ moduleName: 'mappingServer', logLevel: 'info' })
   logger.info('logLevel: info')
   logger.info('info displayed')
   logger.debug('debug displayed')
@@ -19,7 +19,7 @@ test('logLevel info', async () => {
 
 test('logLevel debug', async () => {
   // expect(isCity('Vienna')).toBeTruthy();
-  const logger =  Logger({ moduleName:'mappingServer', logLevel:'debug'})
+  const logger = Logger({ moduleName: 'mappingServer', logLevel: 'debug' })
   logger.info('logLevel: debug')
   logger.info('info displayed')
   logger.debug('debug displayed')

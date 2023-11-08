@@ -1,241 +1,246 @@
-const EventEmitter = require('events')
-const { RTCPeerConnection, RTCSessionDescription } = require('wrtc')
-
-const delayMs = ms => new Promise(res => setTimeout(res, ms))
+import EventEmitter from 'events';
+import { maxHeaderSize } from 'http';
+import nodeDataChannel from 'node-datachannel';
+const delayMs = ms => new Promise(res => setTimeout(res, ms));
+const BUFFER_SIZE = 10 * 1024;   // set buffer size to 0
 
 class WebRTC extends EventEmitter {
-  constructor({logger}) {
-    super()
-    this.logger = logger
-    this.rtc = null
-    this.dataChannels = {}
-    this.type = ''
-    this.nodeId = ''
-    this.defaultChannel = 'datachannel'
-    this.candidates = [] // candidates to be sent
-    this.setRemoteDescriptionFlag = false
+  constructor(nodeId) {
+    super();
+    this.init(nodeId);
+  }
+
+  async init(nodeId) {
+    this.dataChannels = {};
+    this.nodeId = nodeId;
+    this.defaultChannel = 'datachannel';
+    this.setRemoteDescriptionFlag = false;
+    this.messageQueues = {};
+    this.sendIntervals = {}; // interval functions for each label
     this.events = {
       CONNECT: 'connect',
       DISCONNECTED: 'disconnected',
       DATA: 'data',
       CLOSE: 'close',
-      SIGNAL_DESCR: 'signal_description',
-      SIGNAL_CANDIDATE: 'signal_candidate',
-    }
+      SIGNAL_DESCRIPTION: 'signal_description',
+      SIGNAL_CANDIDATE: 'signal_candidate'
+    };
+    this.initializePeerConnection(['stun:stun.l.google.com:19302']);
   }
 
   isDefaultChannel(channelName) {
     return channelName === this.defaultChannel
   }
 
-  dataChannelCreated(label) {
-    // this.logger.debug(`dataChannelCreated(): label:${label}, this.dataChannels keys:${Object.keys(this.dataChannels)}`)
-    return label in this.dataChannels
+  createDefaultDataChannel() {
+    return this.createDataChannel(this.defaultChannel);
   }
-
+  // The rest of your methods would need to be updated similarly
+  // For example:
   createDataChannel(label) {
-    try {
-      const dc = this.rtc.createDataChannel(label, {
-        reliable: true
-      })
-      this.logger.debug('createDataChannel: datachannel', dc.label, 'created.')
-      this._dataChannelEvents(dc)
-      this.dataChannels[label] = dc
-      return dc
-    } catch (dce) {
-      this.logger.debug('datachannel established error: ' + dce.message)
-    }
-  }
-
-  _periodicallyCheckStatus() {
-    let self = this
-    if (this.rtc.connectionState !== 'connected') {
-      this.logger.debug(`periodicallyCheckStatus, peerconnectionstatus:${this.rtc.connectionState}`)
-    }
-    if(self.rtc.connectionState === 'disconnected' ||
-       self.rtc.connectionState === 'closed' ||
-       self.rtc.connectionState === 'failed') {
-      self.emit(this.events.DISCONNECTED)
+    if (this.peerConnection) {
+      try {
+        console.log('createDataChannel: datachannel', label);
+        let dc = this.peerConnection.createDataChannel(label);
+        this.setupDataChannelEvents(dc);
+        this.dataChannels[label] = { dc, "opened": false };
+        return dc;
+      } catch (error) {
+        console.log('DataChannel establishment error:', error.message);
+      }
     } else {
-      setTimeout( ()=> {
-        self._periodicallyCheckStatus()
-      }, 5000)
+      console.log('PeerConnection has not been initialized.');
     }
   }
 
-  _dataChannelEvents(channel) {
-    let self = this
-    channel.onopen = () => {
-      this.logger.debug(`data channel:${channel.label} opened`)
-      self.emit(this.events.CONNECT, channel.label)
-    }
-    channel.onmessage = event => {
-      this.emit(this.events.DATA, {
-        label: channel.label,
-        data: event.data,
-        nodeId: this.nodeId
-      })
-    }
-    channel.onerror = err => {
-      this.logger.debug('Datachannel Error: ' + err)
-    }
-    channel.onclose = () => {
-      this.logger.debug('DataChannel', channel.label, 'is closed')
-      this.emit(this.events.CLOSE, channel.label)
-    }
-  }
-
-  _prepareNewConnection(opt) {
-    let peer
-    if (opt.disable_stun) {
-      this.logger.debug('disable stun')
-      peer = new RTCPeerConnection({
-        iceServers: []
-      })
-    } else {
-      peer = new RTCPeerConnection({
-        iceServers: [
-          { urls: 'stun:stun3.l.google.com:19302' },
-          {
-            urls: "turn:p2p.ai1to1.com:15002",
-            username: "ai1to1",
-            credential: "ai123",
-          }
-          /*
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun.webrtc.ecl.ntt.com:3478' },
-          { urls: 'stun:stunserver.org' },
-          */
-        ],
-      })
-    }
-
-    peer.onicecandidate = async (evt) => {
-      this.logger.debug('onicecandidate, evt:', JSON.stringify(evt))
-      if (evt.candidate) { // we have candidate to signal
-        if (this.type === 'offer') {
-          let i
-          for ( i = 0; i < 20; i++) {
-            if (this.setRemoteDescriptionFlag === true) {
-              break
-            }
-            await delayMs(1000)
-          }
+  closeDataChannel(label) {
+    if (this.dataChannels[label]) {
+      console.log(`Closing data channel: ${label}`);
+      try {
+        this.dataChannels[label].dc.close(); // Close the data channel
+        delete this.dataChannels[label]; // Remove the reference from the dictionary
+        this.emit(this.events.CLOSE, label); // Emit a close event
+        if (label in this.messageQueues) {
+          delete this.messageQueues[label];
         }
-        this.logger.debug(`${this.type==='offer'?'client':'server'} side sent candidate`)
-        this.emit(this.events.SIGNAL_CANDIDATE, evt.candidate)
+        if (label in this.sendIntervals) {
+          console.log(`closed sendIntervals2 for channel:${label}`);
+          clearInterval(this.sendIntervals[label]);
+          delete this.sendIntervals[label];
+        }
+      } catch (error) {
+        console.error(`Error closing data channel ${label}:`, error);
       }
-    }
-
-    peer.ondatachannel = evt => {
-      const dataChannel = evt.channel
-      this.dataChannels[dataChannel.label] = dataChannel
-      this.logger.debug('ondatachannel: datachannel', dataChannel.label, 'created.')
-      this._dataChannelEvents(dataChannel)
-    }
-    peer.onerror = err => {
-      this.logger.debug(`RTCPeerConnection error:${err}`)
-    }
-    peer.onclose = (evt) => {
-      this.logger.debug(`RTCPeerConnection closed`)
-    }
-    return peer
-  }
-
-  makeOffer(opt = { disable_stun: false }) {
-    this.type = 'offer'
-    this.rtc = this._prepareNewConnection(opt)
-    this._periodicallyCheckStatus()
-    this.rtc.onnegotiationneeded = async () => {
-      this.logger.debug(`onnegotiationneeded is called.`)
-      try {
-        let offer = await this.rtc.createOffer()
-        await this.rtc.setLocalDescription(offer)
-        this.emit(this.events.SIGNAL_DESCR, this.rtc.localDescription)
-      } catch (err) {
-        console.error('setLocalDescription(offer) ERROR: ', err)
-      }
-    }
-    this.createDataChannel(this.defaultChannel)
-  }
-
-  setRemoteDescription(sdp) {
-    try {
-      this.logger.debug(`${this.type==='offer'?'client':'server'} side setRemoteDescription2`)
-      this.rtc.setRemoteDescription(new RTCSessionDescription(sdp))
-      this.setRemoteDescriptionFlag = true
-    } catch (err) {
-      console.error('setRemoteDescription(answer) ERROR: ', err)
-    }
-  }
-
-  async makeAnswer(sdp, opt = { disable_stun: false }) {
-    this.type = 'answer'
-    this.rtc = this._prepareNewConnection(opt)
-    this._periodicallyCheckStatus()
-    try {
-      this.logger.debug(`${this.type==='offer'?'client':'server'} side setRemoteDescription1`)
-      await this.rtc.setRemoteDescription(new RTCSessionDescription(sdp))
-      try {
-        const answer = await this.rtc.createAnswer()
-        await this.rtc.setLocalDescription(answer)
-        this.emit(this.events.SIGNAL_DESCR, this.rtc.localDescription)
-      } catch (err) {
-        console.error(err)
-      }
-    } catch (err) {
-      console.error('setRemoteDescription(offer) ERROR: ', err)
-    }
-  }
-
-  async addIceCandidate(candidate) {
-    try {
-      await this.rtc.addIceCandidate(candidate)
-    } catch(e) {
-      this.logger.debug(`failed to addIceCandidate:${JSON.stringify(candidate)}`)
-    }
-  }
-
-  send(data, label) {
-    if (this.dataChannels[label].readyState === 'open') {
-      this.dataChannels[label].send(data)
     } else {
-      this.emit(this.events.CLOSE, label)
+      console.log(`Data channel with label "${label}" does not exist or has already been closed.`);
+    }
+  }
+
+  setupDataChannelEvents(dc) {
+    dc.onOpen(async () => {
+      await delayMs(100); // Wait a bit for all events to process
+      let label = dc.getLabel();
+      console.log(`Data channel ${label} opened`);
+      this.dataChannels[label]["opened"] = true
+      if (label !== this.defaultChannel) {
+        this.sendIntervals[label] = setInterval(() => {
+          this._tryToSend(label);
+        }, 10);
+      }
+      this.emit(this.events.CONNECT, label);
+    });
+
+    dc.onMessage((msg, isBinary) => {
+      this.emit(this.events.DATA, {
+        label: dc.getLabel(),
+        data: msg,
+        nodeId: this.nodeId
+      });
+    });
+
+    dc.onClosed(() => {
+      const channel = dc.getLabel();
+      console.log(`DataChannel ${channel} is closed`);
+      if (channel in this.dataChannels) {
+        delete this.dataChannels[channel]
+      }
+      if (channel in this.messageQueues) {
+        delete this.messageQueues[channel];
+      }
+      if (channel in this.sendIntervals) {
+        console.log(`closed sendIntervals for channel:${channel}`);
+        clearInterval(this.sendIntervals[channel]);
+        delete this.sendIntervals[channel];
+      }
+      this.emit(this.events.CLOSE, channel);
+    });
+
+    dc.onError((error) => {
+      console.log(`DataChannel error: ${error}`);
+    });
+  }
+
+  // Initialize the PeerConnection using node-datachannel
+  initializePeerConnection(iceServers = []) {
+    // Initialize logger if needed
+    nodeDataChannel.initLogger('Info');
+
+    console.log(`nodeId: ${this.nodeId}, iceServers:${iceServers}, typeof iceServers:${typeof (iceServers)}`);
+    console.log(`nodeDataChannel: ${JSON.stringify(nodeDataChannel)}`);
+    this.peerConnection = new nodeDataChannel.PeerConnection(this.nodeId, { iceServers: ['stun:stun3.l.google.com:19302'] });
+
+    // Setup peer connection events
+    this.peerConnection.onLocalDescription((sdp, type) => {
+      console.log(`onLocalDescription: ${sdp}, ${type}`);
+      this.emit(this.events.SIGNAL_DESCRIPTION, { sdp, type });
+    });
+
+    this.peerConnection.onLocalCandidate((candidate, mid) => {
+      console.log(`onLocalCandidate: ${candidate}, ${mid}`);
+      this.emit(this.events.SIGNAL_CANDIDATE, { candidate, mid });
+    });
+
+    this.peerConnection.onDataChannel((dc) => {
+      console.log('New DataChannel:', dc.getLabel());
+      this.dataChannels[dc.getLabel()] = { dc, "opened": false }
+      this.setupDataChannelEvents(dc);
+      this.emit(this.DATACHANNEL_CREATED, dc.getLabel());
+    });
+
+    this.peerConnection.onStateChange((state) => {
+      console.log(`peerConnection state changed: ${state}`);
+      if (state === 'disconnect') {
+        this.emit(this.events.DISCONNECTED);
+      }
+    });
+
+  }
+
+  setRemoteDescription({ sdp, type }) {
+    if (!this.peerConnection) {
+      console.error('PeerConnection has not been initialized.');
+      return;
+    }
+
+    try {
+      this.peerConnection.setRemoteDescription(sdp, type);
+      this.setRemoteDescriptionFlag = true; // This flag might be used to check if the remote description was set.
+    } catch (error) {
+      console.error('Failed to set remote description:', error);
+    }
+  }
+
+  dataChannelConnected(subClientId) {
+    if (subClientId in this.dataChannels) {
+      return this.dataChannels[subClientId].opened;
+    }
+    return false;
+  }
+
+  addRemoteCandidate({ candidate, mid }) {
+    // ${buf.address} ` + `protocol:${buf.protocol} port:${buf.port} type:${buf.type} tcpType:${buf.tcpType}`)
+    if (!this.peerConnection) {
+      console.error('PeerConnection has not been initialized.');
+      return;
+    }
+    try {
+      this.peerConnection.addRemoteCandidate(candidate, mid);
+    } catch (error) {
+      console.error('Failed to add remote ICE candidate:', error);
+    }
+  }
+
+  sendBuf(buf, label) {
+    if (labe in this.dataChannels) {
+      if (!(label in this.messageQueues)) {
+        this.messageQueues[label] = [];
+        this._setupBufferedAmountLowHandler(label);
+      }
+      // console.error(`pushed buf`);
+      this.messageQueues[label].push(buf);
+    } else {
+      console.error(`sendBuf: Data channel with label "${label}" does not exist.`);
+    }
+  }
+
+  _setupBufferedAmountLowHandler(label) {
+    console.log(`setup onBufferedAmountLow`);
+    this.dataChannels[label].dc.setBufferedAmountLowThreshold(BUFFER_SIZE);
+    this.dataChannels[label].dc.onBufferedAmountLow(() => {
+      // console.log(`onBufferedAmountLow triggered`);
+      this._tryToSend(label);
+    });
+  }
+
+  _tryToSend(label) {
+    if (!this.messageQueues[label] || !this.dataChannels[label] || !this.dataChannels[label].opened) {
+      console.error(`_tryToSend: message queue or data channel does not exist`);
+      return;
+    }
+    while (this.messageQueues[label].length > 0 &&
+      this.dataChannels[label].dc.bufferedAmount() <= BUFFER_SIZE &&
+      this.dataChannels[label].opened) {
+      const message = this.messageQueues[label].shift();
+      // console.log(`sendMessageBinary buf`);
+      this.dataChannels[label].dc.sendMessageBinary(message);
     }
   }
 
   async close() {
-    let self = this
-    for (let label in this.dataChannels) {
-      this.dataChannels[label].close()
+    for (const label in this.dataChannels) {
+      this.dataChannels[label].dc.close();
+      delete this.dataChannels[label];
     }
-    // since we have datachannel.InternalCleanUp() crash issue.
-    // rtc.close() has to be called only when all data channels closed and rtc.connectionState != 'open'
-    for (let i=0; i<10; i++) {
-      await delayMs(1000)
-      if(self.rtc.connectionState === 'disconnected' ||
-         self.rtc.connectionState === 'closed' ||
-         self.rtc.connectionState === 'failed') {
-        this.logger.debug(`rtc closed already`)
-        return
-      } else
-      if(self.rtc.connectionState === 'new' || !(self.defaultChannel in this.dataChannels) ||
-         this.dataChannels[self.defaultChannel].readyState === 'closed') {
-        await delayMs(1000)
-        this.logger.debug(`rtc.close() being called.`)
-        self.rtc.close()
-        return
-      }
-    }
-    this.logger.debug(`timeout for rtc.close()`)
-  }
 
-  closeDataChannel(channelName) {
-    if (channelName in this.dataChannels) {
-      this.dataChannels[channelName].close()
-      delete this.dataChannels[channelName]
+    if (this.peerConnection) {
+      this.peerConnection.close();
+      this.peerConnection = null;
     }
+
+    // Optionally, if you want to make sure everything is cleaned up
+    await delayMs(1000); // Wait a bit for all events to process
+    nodeDataChannel.cleanup();
   }
 }
 
-module.exports = WebRTC
+export default WebRTC;

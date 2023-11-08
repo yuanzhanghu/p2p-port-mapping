@@ -1,7 +1,6 @@
-const { format, createLogger, transports } = require('winston')
-const { delay } = require('./tool')
+import { format, createLogger, transports } from 'winston';
 
-var Logger = ({ moduleName, logLevel}) => {
+export const Logger = ({ moduleName, logLevel}) => {
     let logger = createLogger({
         level: logLevel,
         format: format.combine(
@@ -28,5 +27,3 @@ var Logger = ({ moduleName, logLevel}) => {
     // logger.info('Hello there. How are you?');
     return logger
 }
-
-module.exports = {Logger}
