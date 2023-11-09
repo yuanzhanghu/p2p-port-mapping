@@ -40,10 +40,12 @@ python3 api_server.py
 
 ## WebRTC需要的STUN / TURN Server
 当前使用的是:
+```
 [
   'stun:stun.l.google.com:19302',
   'turn:free:free@freeturn.net:3478',
 ]
+```
 你可以换成自己的STUN/TURN server，请自行修改webRTC.js
 
 ## 联系方式
