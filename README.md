@@ -36,8 +36,8 @@ get printed log:
 
 
 3. now we can do this on B:
-```
 ssh user@localhost -p 9002
+
 above command will ssh to A actually.
 ```
 
