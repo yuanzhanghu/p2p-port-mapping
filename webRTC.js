@@ -191,7 +191,7 @@ class WebRTC extends EventEmitter {
   }
 
   sendBuf(buf, label) {
-    if (labe in this.dataChannels) {
+    if (label in this.dataChannels) {
       if (!(label in this.messageQueues)) {
         this.messageQueues[label] = [];
         this._setupBufferedAmountLowHandler(label);
