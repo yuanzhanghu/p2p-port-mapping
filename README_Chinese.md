@@ -13,9 +13,9 @@ p2p内网穿透, 端口转发/端口映射. 跨NAT和防火墙，从任何地方
 
 ## 安装
 1. 安装nodejs
-2. 克隆仓库 https://github.com/yuanzhanghu/p2p-port-mapping.git
-3. 进入p2p-port-mapping目录
-4. 安装npm包
+2. git clone https://github.com/yuanzhanghu/p2p-port-mapping.git
+3. cd p2p-port-mapping
+4. npm install
 
 ## 示例1（在Linux上验证）
 假设我们想要从B计算机通过防火墙远程访问A计算机的ssh，我们可以进行端口映射如下：
