@@ -23,20 +23,20 @@ Assume that we want to do ssh from computer B to computer A across firewalls, we
  node main_server.js --port 22
 
 get printed log:
- 2023-11-08 17:12:40 mappingServer info: server_registered, local port:22 ====> serverKey:8HT5RZSYT
+ 2023-11-08 19:37:10 mappingServer info: server_registered, local port:22 ====> serverKey:KJASD2DW2 
 
 please write down the serverKey.
 
 2. on computer B, mapping serverKey in to a localhost port:
 // above serverKey is used on computer B
-  node main_client.js --port 9002 --key <serverKey-displayed-in-step1>
+  node main_client.js --port 8082 --key <serverKey-displayed-in-step1>
 
 get printed log:
-2023-11-08 17:17:50 mappingClient info: tunnel established. serverKey:8HT5RZSYT ====> local port:8082
+2023-11-08 19:37:20 mappingClient info: tunnel established. serverKey:KJASD2DW2 ====> local port:8082
 
 
 3. now we can do this on B:
-ssh user@localhost -p 9002
+ssh user@localhost -p 8082
 
 above command will ssh to A actually.
 ```
