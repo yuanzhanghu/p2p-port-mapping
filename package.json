@@ -1,6 +1,6 @@
 {
   "name": "p2p-port-mapping",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "mapping local server port to another machine across NAT, using webrtc data channel.",
   "main": "index.js",
   "type": "module",
