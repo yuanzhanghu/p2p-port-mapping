@@ -11,7 +11,7 @@ export default class SignalClient extends EventEmitter {
   }
 
   connectToServer(url) {
-    const NAMESPACE = '/api/netptop/websocket';
+    const NAMESPACE = '/api/p2pmapping/websocket';
     this.socket = io.connect(url + NAMESPACE, {
       transports: ['websocket']  // Use WebSockets only; optional
     });

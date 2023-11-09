@@ -32,5 +32,14 @@ p2p内网穿透, 端口转发/端口映射. 跨NAT和防火墙，从任何地方
 3. 现在我们可以在B上执行以下命令：
 ssh user@localhost -p 9002 上述命令实际上将ssh连接到A计算机。
 
+## Signal Server
+当前的信号服务器运行在ai1to1.com, 使用socket.io. 你也可以运行自己的信号服务器， 源码在signal_server/, 运行:
+```
+python3 api_server.py
+```
+
+## STUN / TURN Server
+当前使用的是 stun:stun3.l.google.com:19302, 你可以换成自己的STUN/TURN server，可以自行修改webRTC.js
+
 ## 联系方式
 电子邮件: huyuanzhang@gmail.com
