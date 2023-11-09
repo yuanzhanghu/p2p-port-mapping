@@ -25,7 +25,10 @@ class WebRTC extends EventEmitter {
       SIGNAL_DESCRIPTION: 'signal_description',
       SIGNAL_CANDIDATE: 'signal_candidate'
     };
-    this.initializePeerConnection(['stun:stun.l.google.com:19302']);
+    this.initializePeerConnection([
+      'stun:stun.l.google.com:19302',
+      'turn:free:free@freeturn.net:3478',
+    ]);
   }
 
   isDefaultChannel(channelName) {
@@ -127,7 +130,7 @@ class WebRTC extends EventEmitter {
 
     console.log(`nodeId: ${this.nodeId}, iceServers:${iceServers}, typeof iceServers:${typeof (iceServers)}`);
     console.log(`nodeDataChannel: ${JSON.stringify(nodeDataChannel)}`);
-    this.peerConnection = new nodeDataChannel.PeerConnection(this.nodeId, { iceServers: ['stun:stun3.l.google.com:19302'] });
+    this.peerConnection = new nodeDataChannel.PeerConnection(this.nodeId, { iceServers });
 
     // Setup peer connection events
     this.peerConnection.onLocalDescription((sdp, type) => {
@@ -199,7 +202,9 @@ class WebRTC extends EventEmitter {
       // console.error(`pushed buf`);
       this.messageQueues[label].push(buf);
     } else {
-      console.error(`sendBuf: Data channel with label "${label}" does not exist.`);
+      // TODO: we have issue that data channel close won't close socket server, 
+      //       which leads to contineous sending data from socket server.
+      // console.error(`sendBuf: Data channel with label "${label}" does not exist.`);
     }
   }
 

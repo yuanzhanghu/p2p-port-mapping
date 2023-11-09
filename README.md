@@ -41,14 +41,19 @@ ssh user@localhost -p 8082
 above command will ssh to A actually.
 ```
 
-## Signal Server
+## Signal Server For WebRTC
 Current signal server is using socket.io running on ai1to1.com, you can run your signal server as well. Source code is located in signal_server/, just run:
 ```
 python3 api_server.py
 ```
 
-## STUN / TURN Server
-currently using: stun:stun3.l.google.com:19302, you can change it in webRTC.js
+## STUN / TURN Server For WebRTC
+Currently using:
+[
+  'stun:stun.l.google.com:19302',
+  'turn:free:free@freeturn.net:3478',
+]
+You can change it in webRTC.js
 
 ## Contact
 email: huyuanzhang@gmail.com
