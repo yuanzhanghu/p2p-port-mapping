@@ -12,8 +12,8 @@ export default async ({ server_port, serverKey, logLevel = 'info' }) => {
   const onConnectMsg = 'welcome' // send msg to client while connection established.
   const serviceKey_server = idGenerate()
   const version = '0.1'
-  const signalClient = new SignalClient()
-  logger.debug(`serverKey:${serverKey}, serviceKey_server:${serviceKey_server}`)
+  const signalClient = new SignalClient('https://ai1to1.com');
+  logger.debug(`serverKey:${serverKey}, serviceKey_server:${serviceKey_server}`);
 
   let p2pMappingServer = new MappingServer({ version, signalClient, logger, onConnectMsg, serverKey, serviceKey_server, server_port, netCreateConnection })
   p2pMappingServer.on('server_registered', ({ serverKey }) => {
@@ -33,6 +33,5 @@ export default async ({ server_port, serverKey, logLevel = 'info' }) => {
   p2pMappingServer.on('clientMsg', ({ clientId, buf }) => {
     logger.debug(`clientMsg, clientId:${clientId}, buf:${buf}`)
   })
-  p2pMappingServer.register()
   return p2pMappingServer
 }

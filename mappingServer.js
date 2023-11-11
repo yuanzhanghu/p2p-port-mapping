@@ -30,6 +30,7 @@ export default class MappingServer extends EventEmitter {
     })
     self.signalClient.on('connect', () => {
       // self.signalClient.server_keep_alive({ serverKey })
+      self.register();
     })
 
     self.signalClient.on('message', async (msgObj) => {

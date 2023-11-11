@@ -21,8 +21,6 @@ export default class MappingClient extends EventEmitter {
     self.signalPort = signalPort
     self.signalAddress = signalAddress
 
-    self.signalClient.client_register({ serverKey: self.serverKey, serviceKey_client, clientId: self.clientId })
-
     self.server.on('connection', c => { // local server which map to remote server.
       // 'connection' listener
       let subClientId = `subClientId_${self.g_subClientId}`;
@@ -70,6 +68,9 @@ export default class MappingClient extends EventEmitter {
 
     self.signalClient.on('close', () => {
       self.logger.info('signal server disconnected')
+    })
+    self.signalClient.on('connect', () => {
+      self.signalClient.client_register({ serverKey: self.serverKey, serviceKey_client, clientId: self.clientId })
     })
     self.signalClient.on('message', (msgObj) => {
       let { msgType, data } = msgObj
