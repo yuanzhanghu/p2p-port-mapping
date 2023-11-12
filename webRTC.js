@@ -88,7 +88,7 @@ class WebRTC extends EventEmitter {
       if (label !== this.defaultChannel) {
         this.sendIntervals[label] = setInterval(() => {
           this._tryToSend(label);
-        }, 10);
+        }, 1);
       }
       this.emit(this.events.CONNECT, label);
     });

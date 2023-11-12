@@ -5,25 +5,25 @@ import fs from 'fs';
 import startServer from './startServer.js';
 import { idGenerate } from './tool.js';
 
-// Define the path to the config file
 const configFilePath = './config.json';
 
-// Function to read the server key from config.json
-const readServerKey = () => {
+const readServerKey = (port) => {
   try {
-    const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
-    return config.serverKey;
+    const config = fs.existsSync(configFilePath) ? JSON.parse(fs.readFileSync(configFilePath, 'utf8')) : {};
+    if (config[port] && config[port].serverKey) {
+      return config[port].serverKey;
+    }
   } catch (error) {
-    // If reading the file fails, generate a new key
-    console.error('Error reading config.json, generating a new server key.');
-    return idGenerate();
+    console.error('Error reading config.json:', error);
   }
+  return null;
 };
 
-// Function to save the server key to config.json
-const saveServerKey = (serverKey) => {
+const saveServerKey = (port, serverKey) => {
   try {
-    fs.writeFileSync(configFilePath, JSON.stringify({ serverKey }), 'utf8');
+    const config = fs.existsSync(configFilePath) ? JSON.parse(fs.readFileSync(configFilePath, 'utf8')) : {};
+    config[port] = { serverKey };
+    fs.writeFileSync(configFilePath, JSON.stringify(config, null, 2), 'utf8');
   } catch (error) {
     console.error('Error writing to config.json:', error);
   }
@@ -61,17 +61,15 @@ const argv = yargs(hideBin(process.argv))
   })
   .parse();
 
-// Destructure the options
 const { port, logLevel, ip, regenerateKey } = argv;
 
-// Determine the server key to use
-let serverKey = regenerateKey ? idGenerate() : readServerKey();
+let serverKey = readServerKey(port);
+if (!serverKey || regenerateKey) {
+  serverKey = idGenerate();
+  saveServerKey(port, serverKey);
+}
 
-// Save the server key if it was regenerated
-saveServerKey(serverKey);
-
-// Start the server with the determined key
-startServer({ server_port:port, serverKey, logLevel }).then((server) => {
+startServer({ server_port: port, serverKey, logLevel }).then((server) => {
   console.log(`Server is running on ${ip}:${port} with key ${serverKey}`);
 }).catch((error) => {
   console.error('Failed to start the server:', error);
