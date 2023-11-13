@@ -82,15 +82,17 @@ export default class MappingClient extends EventEmitter {
       self.logger.info('signal server disconnected')
     })
     self.signalClient.on('connect', () => {
-      self.signalClient.client_register({ serverKey: self.serverKey,
-        serviceKey_client:self.serviceKey_client, clientId: self.clientId })
+      self.signalClient.client_register({
+        serverKey: self.serverKey,
+        serviceKey_client: self.serviceKey_client, clientId: self.clientId
+      })
     })
     self.signalClient.on('message', (msgObj) => {
       let { msgType, data } = msgObj
       if (msgType === 'client_registered') {
-        const { clientId, server_key} = data
+        const { clientId, server_key } = data
         self.logger.info(`client_registered:${clientId}, server_key:${serverKey}`);
-        self.emit('client_registered', { clientId, serverKey})
+        self.emit('client_registered', { clientId, serverKey })
       } else
         if (msgType === 'messageBox') {
           self.emit('updateMessageBox', data)
@@ -173,7 +175,7 @@ export default class MappingClient extends EventEmitter {
     })
     self.peerOffer.on('peer_connected', () => {
       self.peer_connected = true;
-      self.emit('peer_connected');
+      self.emit('peer_connected', self.clientId);
     })
     self.peerOffer.on('channel_connected', (channel) => {
       self.logger.info(`clientId: ${self.clientId}, channel:${channel} connected.`);

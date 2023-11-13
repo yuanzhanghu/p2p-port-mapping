@@ -15,7 +15,7 @@ export default async function({ server_port, serverKey, logLevel = 'info',
     p2pMappingServer.registered = true
   })
   p2pMappingServer.on('updateMessageBox', messageBox => {
-    logger.debug(`server messageBox:${messageBox}`)
+    logger.info(`server messageBox:${messageBox}`)
   })
   p2pMappingServer.on('error', error => {
     logger.error(`server${serverKey} side error:${error}`)
@@ -33,7 +33,7 @@ export default async function({ server_port, serverKey, logLevel = 'info',
     logger.info(`server${serverKey} side clientId: ${clientId}, channel:${channel} closed`);
   })
   p2pMappingServer.on('clientMsg', ({ clientId, buf }) => {
-    logger.debug(`clientMsg, clientId:${clientId}, buf:${buf}`)
+    logger.info(`clientMsg, clientId:${clientId}, buf:${buf}`)
   })
   return p2pMappingServer
 }

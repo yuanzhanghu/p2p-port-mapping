@@ -106,7 +106,7 @@ export default class MappingServer extends EventEmitter {
                       self.logger.error(`mappingServer error:${err}`)
                       self.emit('error', err);
                     })
-                    peerAnswer.on('peer_connected', clientId => {
+                    peerAnswer.on('peer_connected', () => {
                       self.emit('peer_connected', clientId);
                     });
                     peerAnswer.on('peer_closed', () => {

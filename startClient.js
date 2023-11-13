@@ -3,18 +3,18 @@ import MappingClient from './mappingClient.js';
 import { Logger } from './mylog.js';
 
 export default async function ({ localListenPort, serverKey, logLevel = 'info',
-                websocket_url = "https://ai1to1.com",
-                iceServers = [
-                  'stun:stun.l.google.com:19302',
-                  'turn:free:free@freeturn.net:3478',
-                ]}) {
+  websocket_url = "https://ai1to1.com",
+  iceServers = [
+    'stun:stun.l.google.com:19302',
+    'turn:free:free@freeturn.net:3478',
+  ] }) {
   const logger = Logger({ moduleName: 'MappingClientManager', logLevel });
-  let mapClient = new MappingClient({ localListenPort, serverKey, logLevel, websocket_url, iceServers});
+  let mapClient = new MappingClient({ localListenPort, serverKey, logLevel, websocket_url, iceServers });
   mapClient.on('updateMessageBox', messageBox => {
-    logger.debug('updateMessageBox', messageBox)
+    logger.info('updateMessageBox', messageBox)
   })
   mapClient.on('error', error => {
-    logger.debug(`mapClient error ${error}`);
+    logger.info(`mapClient error ${error}`);
   })
   mapClient.on('client_registered', clientId => {
     logger.info(`client registered: ${clientId}`);
@@ -22,19 +22,19 @@ export default async function ({ localListenPort, serverKey, logLevel = 'info',
     mapClient.createPeer()
   })
   mapClient.on('channel_connected', ({ clientId, channel }) => {
-    logger.debug(`clientId:${clientId}, channel:${channel} connected.`);
+    logger.info(`clientId:${clientId}, channel:${channel} connected.`);
   });
   mapClient.on('channel_closed', ({ clientId, channel }) => {
-    logger.debug(`clientId:${clientId}, channel:${channel} closed.`);
+    logger.info(`clientId:${clientId}, channel:${channel} closed.`);
   });
   mapClient.on('peer_connected', clientId => {
-    logger.debug(`clientId:${clientId} connected.`);
+    logger.info(`clientId:${clientId} peer connected.`);
   });
   mapClient.on('peer_closed', clientId => {
-    logger.debug(`clientId:${clientId} closed.`);
+    logger.info(`clientId:${clientId} peer closed.`);
   });
   mapClient.on('serverMsg', msg => {
-    logger.debug(`serverMsg:${msg}`)
+    logger.info(`serverMsg:${msg}`)
   })
   let timeout = 30 // 30seconds
   for (let i = 0; i < timeout; i++) {
