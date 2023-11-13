@@ -8,7 +8,7 @@ export default async function ({ localListenPort, serverKey, logLevel = 'info',
     'stun:stun.l.google.com:19302',
     'turn:free:free@freeturn.net:3478',
   ] }) {
-  const logger = Logger({ moduleName: 'MappingClientManager', logLevel });
+  const logger = Logger({ moduleName: 'startClient', logLevel });
   let mapClient = new MappingClient({ localListenPort, serverKey, logLevel, websocket_url, iceServers });
   mapClient.on('updateMessageBox', messageBox => {
     logger.info('updateMessageBox', messageBox)
@@ -32,6 +32,7 @@ export default async function ({ localListenPort, serverKey, logLevel = 'info',
   });
   mapClient.on('peer_closed', clientId => {
     logger.info(`clientId:${clientId} peer closed.`);
+    mapClient.createPeer();
   });
   mapClient.on('serverMsg', msg => {
     logger.info(`serverMsg:${msg}`)

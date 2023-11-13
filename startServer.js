@@ -7,7 +7,7 @@ export default async function({ server_port, serverKey, logLevel = 'info',
                   'stun:stun.l.google.com:19302',
                   'turn:free:free@freeturn.net:3478',
                 ]}) {
-  const logger = Logger({ moduleName: 'MappingServerManager', logLevel });
+  const logger = Logger({ moduleName: 'startServer', logLevel });
 
   let p2pMappingServer = new MappingServer({ server_port, serverKey, logLevel, websocket_url, iceServers });
   p2pMappingServer.on('server_registered', ({ serverKey }) => {

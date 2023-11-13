@@ -146,7 +146,7 @@ export default class MappingClient extends EventEmitter {
     self.peerOffer.on('peer_closed', async () => {
       console.log(`self.peerOffer.on('peer_closed') called.`);
       await self.close()
-      self.emit('peer_closed', 'peer_closed')
+      self.emit('peer_closed', self.clientId);
       self.peer_connected = false
     })
     self.peerOffer.on('signal_description', signalData => {
