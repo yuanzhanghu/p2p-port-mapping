@@ -5,12 +5,8 @@ const delayMs = ms => new Promise(res => setTimeout(res, ms));
 const BUFFER_SIZE = 10 * 1024;   // set buffer size to 0
 
 class WebRTC extends EventEmitter {
-  constructor(nodeId) {
+  constructor(nodeId, iceServers) {
     super();
-    this.init(nodeId);
-  }
-
-  async init(nodeId) {
     this.dataChannels = {};
     this.nodeId = nodeId;
     this.defaultChannel = 'datachannel';
@@ -18,17 +14,15 @@ class WebRTC extends EventEmitter {
     this.messageQueues = {};
     this.sendIntervals = {}; // interval functions for each label
     this.events = {
-      CONNECT: 'connect',
-      DISCONNECTED: 'disconnected',
+      PEER_CONNECTED: 'peer_connected',
+      PEER_CLOSED: 'peer_closed',
+      CHANNEL_CONNECTED: 'channel_connected',
+      CHANNEL_CLOSED: 'channel_closed',
       DATA: 'data',
-      CLOSE: 'close',
       SIGNAL_DESCRIPTION: 'signal_description',
       SIGNAL_CANDIDATE: 'signal_candidate'
     };
-    this.initializePeerConnection([
-      'stun:stun.l.google.com:19302',
-      'turn:free:free@freeturn.net:3478',
-    ]);
+    this.initializePeerConnection(iceServers);
   }
 
   isDefaultChannel(channelName) {
@@ -62,7 +56,7 @@ class WebRTC extends EventEmitter {
       try {
         this.dataChannels[label].dc.close(); // Close the data channel
         delete this.dataChannels[label]; // Remove the reference from the dictionary
-        this.emit(this.events.CLOSE, label); // Emit a close event
+        this.emit(this.events.CHANNEL_CLOSED, label); // Emit a disconnected event
         if (label in this.messageQueues) {
           delete this.messageQueues[label];
         }
@@ -90,7 +84,7 @@ class WebRTC extends EventEmitter {
           this._tryToSend(label);
         }, 1);
       }
-      this.emit(this.events.CONNECT, label);
+      this.emit(this.events.CHANNEL_CONNECTED, label);
     });
 
     dc.onMessage((msg, isBinary) => {
@@ -115,7 +109,7 @@ class WebRTC extends EventEmitter {
         clearInterval(this.sendIntervals[channel]);
         delete this.sendIntervals[channel];
       }
-      this.emit(this.events.CLOSE, channel);
+      this.emit(this.events.CHANNEL_CLOSED, channel);
     });
 
     dc.onError((error) => {
@@ -152,8 +146,10 @@ class WebRTC extends EventEmitter {
 
     this.peerConnection.onStateChange((state) => {
       console.log(`peerConnection state changed: ${state}`);
-      if (state === 'disconnect') {
-        this.emit(this.events.DISCONNECTED);
+      if (state === 'closed') {
+        this.emit(this.events.PEER_CLOSED);
+      } else if (state === 'connected') {
+        this.emit(this.events.PEER_CONNECTED);
       }
     });
 
@@ -181,7 +177,7 @@ class WebRTC extends EventEmitter {
   }
 
   addRemoteCandidate({ candidate, mid }) {
-    // ${buf.address} ` + `protocol:${buf.protocol} port:${buf.port} type:${buf.type} tcpType:${buf.tcpType}`)
+    // ${buf.address} ` + `port:${buf.port} type:${buf.type} tcpType:${buf.tcpType}`)
     if (!this.peerConnection) {
       console.error('PeerConnection has not been initialized.');
       return;

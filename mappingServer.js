@@ -1,27 +1,40 @@
 import EventEmitter from 'events';
-import WebRTC from './webRTC.js';
-import { delay } from './tool.js';
-
-const delayMs = ms => new Promise(res => setTimeout(res, ms))
+import net from 'net';
+import { Logger } from './mylog.js';
+import { idGenerate } from './tool.js';
+import SignalClient from './signalClient.js';
+import WebRTC from './webRTC.js'; // Assuming you need this
 
 export default class MappingServer extends EventEmitter {
-  constructor({ logger, onConnectMsg, version, serverKey, serviceKey_server, server_port, signalClient, signalAddress, signalPort, netCreateConnection, protocol }) {
-    super()
-    let self = this
-    self.logger = logger
-    self.version = version
+  constructor({ server_port, serverKey, logLevel = 'info',
+    websocket_url = "https://ai1to1.com",
+    iceServers = [
+      'stun:stun.l.google.com:19302',
+      'turn:free:free@freeturn.net:3478',
+    ]
+  }) {
+    super();
+    let self = this;
+    this.logger = Logger({ moduleName: 'mappingServer', logLevel });
+    // Generate service key for the server
+    this.serviceKey_server = idGenerate();
+    this.logger.debug(`serverKey:${serverKey}, serviceKey_server:${this.serviceKey_server}`);
+
+    this.version = '0.1';
+    this.onConnectMsg = 'welcome'; // Message sent to client upon connection establishment
+
+    this.signalClient = new SignalClient(websocket_url);
+
+    this.netCreateConnection = net.createConnection; // If you need it
+    self.iceServers = iceServers;
+
     self.server_port = server_port // server port to be mapped to peer.
     self.clientDict = {}
-    self.signalClient = signalClient
-    self.protocol = protocol
     self.serverKey = serverKey
-    self.serviceKey_server = serviceKey_server
-    self.signalPort = signalPort
-    self.signalAddress = signalAddress
-    self.netCreateConnection = netCreateConnection
 
     self.signalClient.on('close', async () => {
       self.logger.info('signalClient closed.');
+      self.emit("close", { serverKey: self.serverKey })
       /* we can add this back in future if we need to close MappingServer when signalClient temporarily closed.
       await self.close();
       self.signalClient = undefined
@@ -48,6 +61,7 @@ export default class MappingServer extends EventEmitter {
         } else
           if (msgType === 'errMsg') {
             self.logger.error(`error:${JSON.stringify(data)}`)
+            self.emit("error", JSON.stringify(data));
           } else
             if (msgType === 'clientSignal') {
               const { event, clientId, subClientId, buf } = data
@@ -59,14 +73,18 @@ export default class MappingServer extends EventEmitter {
                     self.clientDict[clientId].peerAnswer.setRemoteDescription(buf)
                   } else {
                     self.logger.info(`creating peerAnswer...`)
-                    const peerAnswer = new WebRTC("server_peer")
-                    peerAnswer.on('connect', async (channel) => {
+                    const peerAnswer = new WebRTC("server_peer", this.iceServers);
+                    peerAnswer.on('channel_closed', async (channel) => {
+                      self.emit('channel_closed', channel);
+                    });
+                    peerAnswer.on('channel_connected', async (channel) => {
+                      self.emit('channel_connected', channel);
                       let ret = peerAnswer.isDefaultChannel(channel)
                       self.logger.info(`server side channel:${channel} connected`)
                       console.log(`server side channel:${channel} connected`)
                       if (ret) { // is default channel
-                        self.sendMsg2Client(clientId, onConnectMsg)
-                        console.log(`sent msg to client, onConnectMsg:${onConnectMsg}`)
+                        self.sendMsg2Client(clientId, self.onConnectMsg)
+                        console.log(`sent msg to client, onConnectMsg:${self.onConnectMsg}`)
                         return
                       }
                       console.log(`trying to connect local server...`);
@@ -86,8 +104,13 @@ export default class MappingServer extends EventEmitter {
                     })
                     peerAnswer.on('error', (err) => {
                       self.logger.error(`mappingServer error:${err}`)
+                      self.emit('error', err);
                     })
-                    peerAnswer.on('disconnected', () => {
+                    peerAnswer.on('peer_connected', clientId => {
+                      self.emit('peer_connected', clientId);
+                    });
+                    peerAnswer.on('peer_closed', () => {
+                      self.emit('peer_closed', clientId);
                       if (!self.clientDict[clientId]) {
                         return
                       }
@@ -96,7 +119,6 @@ export default class MappingServer extends EventEmitter {
                       }
                       // peerAnswer.close() // already disconnected, do not call close()
                       delete self.clientDict[clientId]
-                      self.emit('tunnelsChange', Object.keys(self.clientDict).length)
                     })
                     peerAnswer.on('signal_candidate', signalData => { // server response
                       self.signalClient.server_send_signal({
@@ -118,7 +140,6 @@ export default class MappingServer extends EventEmitter {
                     }
                     // we have remotedescription already here.
                     self.clientDict[clientId].peerAnswer.setRemoteDescription(buf);
-                    self.emit('tunnelsChange', Object.keys(self.clientDict).length);
                   }
                   break
                 }
@@ -154,25 +175,12 @@ export default class MappingServer extends EventEmitter {
     })
   }
 
-  keepUdpAlive() {
-    let self = this
-    // sending packet to another port periodically, to keep udp alive.
-    // console.log(`sending keepalive packet`)
-    if (self.signalClient) {
-      self.signalClient.sendFakeData(self.signalPort, self.signalAddress)
-      setTimeout(() => {
-        self.keepUdpAlive()
-      }, 9500) // 9.5 seconds
-    }
-  }
-
   register() {
     let self = this
     let { version } = this
     self.signalClient.server_register({
       version, serverKey: self.serverKey, server_port: self.server_port,
-      serviceKey_server: self.serviceKey_server,
-      protocol: self.protocol,
+      serviceKey_server: self.serviceKey_server
     })
   }
 
@@ -228,7 +236,6 @@ export default class MappingServer extends EventEmitter {
 
   async sendMsg2Client(clientId, buf) {
     let self = this
-    let { signalPort, signalAddress } = this
     self.signalClient.server_send_signal({
       event: 'serverMsg',
       clientId, serverKey: self.serverKey,

@@ -1,25 +1,37 @@
+import net from 'net';
 import EventEmitter from 'events';
-import { delay, idGenerate } from './tool.js';
+import { idGenerate } from './tool.js';
+import SignalClient from './signalClient.js';
 import WebRTC from './webRTC.js';
+import { Logger } from './mylog.js';
 
 export default class MappingClient extends EventEmitter {
-  // const localServer = net.createServer()
-  // const signalSocket = new SignalClient()
-  constructor({ logger, serverKey, serviceKey_client, localServer, signalClient, signalPort, signalAddress }) {
-    super()
+  constructor({ serverKey, localListenPort, logLevel = 'info',
+    websocket_url = "https://ai1to1.com",
+    iceServers = [
+      'stun:stun.l.google.com:19302',
+      'turn:free:free@freeturn.net:3478',
+    ]
+  }) {
+    super();
+    this.logger = Logger({ moduleName: 'mappingClient', logLevel });
+    this.serviceKey_client = idGenerate();
+    this.logger.debug(`serverKey:${serverKey}, serviceKey_client:${this.serviceKey_client}`);
+
+    this.signalClient = new SignalClient(websocket_url); // Assuming SignalClient doesn't need any params
+    this.serverKey = serverKey;
+    this.iceServers = iceServers;
     let self = this;
-    self.logger = logger;
-    self.serverKey = serverKey // process.argv[2]
+
+    self.server = net.createServer();
+    this.server.listen(localListenPort, '127.0.0.1', () => {
+      this.logger.debug(`local server bound on 127.0.0.1: ${localListenPort}`);
+    });
     self.peer_connected = false
     self.peerOffer = undefined
     self.g_subClientId = 0
     self.subClientDict = {} // to save each clientSocket for subClient
-    self.server = localServer
-    self.signalClient = signalClient
     self.clientId = "client_" + idGenerate()
-    self.listeners('errMsg')
-    self.signalPort = signalPort
-    self.signalAddress = signalAddress
 
     self.server.on('connection', c => { // local server which map to remote server.
       // 'connection' listener
@@ -63,28 +75,29 @@ export default class MappingClient extends EventEmitter {
     self.server.on('error', (err) => {
       // throw err
       self.logger.error(`emitting errMsg:${err.toString()}`)
-      self.emit('updateStatus', err.toString())
+      self.emit('error', err.toString())
     })
 
     self.signalClient.on('close', () => {
       self.logger.info('signal server disconnected')
     })
     self.signalClient.on('connect', () => {
-      self.signalClient.client_register({ serverKey: self.serverKey, serviceKey_client, clientId: self.clientId })
+      self.signalClient.client_register({ serverKey: self.serverKey,
+        serviceKey_client:self.serviceKey_client, clientId: self.clientId })
     })
     self.signalClient.on('message', (msgObj) => {
       let { msgType, data } = msgObj
       if (msgType === 'client_registered') {
-        const { clientId, server_key, protocol } = data
-        self.logger.info(`client_registered:${clientId}, server_key:${serverKey}, protocol:${protocol}`);
-        self.emit('client_registered', { clientId, serverKey, protocol })
+        const { clientId, server_key} = data
+        self.logger.info(`client_registered:${clientId}, server_key:${serverKey}`);
+        self.emit('client_registered', { clientId, serverKey})
       } else
         if (msgType === 'messageBox') {
           self.emit('updateMessageBox', data)
         } else
           if (msgType === 'errMsg') {
             self.logger.error(`error:${JSON.stringify(data)}`)
-            self.emit('updateStatus', JSON.stringify(data))
+            self.emit('error', JSON.stringify(data))
           } else
             if (msgType === 'serverSignal') {
               let { event, serverKey, clientId, subClientId, buf } = data
@@ -127,11 +140,11 @@ export default class MappingClient extends EventEmitter {
   createPeer() {
     let self = this
     // self.signalClient.emit('client_signal_description', { self.serverKey, self.clientId, signalData:'from client'})
-    self.peerOffer = new WebRTC("client_peer");
-    self.peerOffer.on('disconnected', async () => {
-      console.log(`self.peerOffer.on('disconnected') called.`);
+    self.peerOffer = new WebRTC("client_peer", this.iceServers);
+    self.peerOffer.on('peer_closed', async () => {
+      console.log(`self.peerOffer.on('peer_closed') called.`);
       await self.close()
-      self.emit('updateStatus', 'disconnected')
+      self.emit('peer_closed', 'peer_closed')
       self.peer_connected = false
     })
     self.peerOffer.on('signal_description', signalData => {
@@ -155,15 +168,20 @@ export default class MappingClient extends EventEmitter {
       })
     })
     self.peerOffer.on('error', error => {
-      self.emit('updateStatus', error)
+      self.emit('error', error)
       self.peer_connected = false
     })
-    self.peerOffer.on('connect', (channel) => {
-      self.logger.info(`client side channel:${channel} connected.`)
-      if (self.peerOffer.isDefaultChannel(channel)) {
-        self.peer_connected = true
-        self.emit('connected')
-      }
+    self.peerOffer.on('peer_connected', () => {
+      self.peer_connected = true;
+      self.emit('peer_connected');
+    })
+    self.peerOffer.on('channel_connected', (channel) => {
+      self.logger.info(`clientId: ${self.clientId}, channel:${channel} connected.`);
+      self.emit('channel_connected', { clientId: self.clientId, channel });
+    })
+    self.peerOffer.on('channel_closed', (channel) => {
+      self.logger.info(`clientId: ${self.clientId}, channel:${channel} closed.`);
+      self.emit('channel_closed', { clientId: self.clientId, channel });
     })
     self.peerOffer.on('data', ({ label, data }) => { //data: Buffer
       let subClientId = label
@@ -181,7 +199,6 @@ export default class MappingClient extends EventEmitter {
     self.peerOffer.createDefaultDataChannel();
   }
   async sendMsg2Server(buf) {
-    let { signalPort, signalAddress } = this
     self.signalClient.client_send_signal({
       event: 'clientMsg',
       clientId: self.clientId,

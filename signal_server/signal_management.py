@@ -131,7 +131,6 @@ class SignalManagement(object):
         print(f"server_register, data:{data}", flush=True)
         server_key = data["serverKey"]
         self.global_mapping.setdefault(server_key, {})
-        self.global_mapping[server_key]["protocol"] = data.get("protocol", "")
         self.global_mapping[server_key].setdefault("clientlist", [])
         self.global_mapping[server_key]["ws_session_id"] = ws_session_id
         self.save_mapping()
@@ -146,12 +145,11 @@ class SignalManagement(object):
         self.global_mapping[server_key]["clientlist"].append(clientId)
         self.global_mapping.setdefault(clientId, {})
         self.global_mapping[clientId]["ws_session_id"] = ws_session_id
-        protocol = self.global_mapping[server_key]["protocol"]
         self.save_mapping()
         return {
             "msgType": "client_registered",
             "data": {"clientId": clientId, "server_key": server_key,
-                     "success": True, "protocol": protocol},
+                     "success": True},
         }
 
     def get_messagebox(self):

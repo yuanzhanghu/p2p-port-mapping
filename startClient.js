@@ -1,38 +1,38 @@
-import net from 'net';
-import EventEmitter from 'events';
-import { idGenerate, delay } from './tool.js';
-import SignalClient from './signalClient.js';
+import { delay } from './tool.js';
 import MappingClient from './mappingClient.js';
 import { Logger } from './mylog.js';
 
-export default async ({ localListenPort, serverKey, logLevel = 'info' }) => {
-  const logger = Logger({ moduleName: 'mappingClient', logLevel })
-  // const moduleName = `serverStart_serverId${serverId}_${serverName}`
-  const netCreateConnection = net.createConnection
-  const serviceKey_client = idGenerate()
-  const signalClient = new SignalClient()
-  logger.debug(`serverKey:${serverKey}, serviceKey_client:${serviceKey_client}`)
-
-  let localServer = net.createServer()
-  localServer.listen(localListenPort, '127.0.0.1', () => { // listen on localhost only, to avoid security issue.
-    logger.debug(`local server bound on 127.0.0.1: ${localListenPort}`)
-  })
-
-
-  const signalPort = 0; // unused.
-  const signalAddress = ''; // unused.
-  let mapClient = new MappingClient({ logger, serverKey, serviceKey_client, localServer, signalPort, signalAddress, signalClient, })
+export default async function ({ localListenPort, serverKey, logLevel = 'info',
+                websocket_url = "https://ai1to1.com",
+                iceServers = [
+                  'stun:stun.l.google.com:19302',
+                  'turn:free:free@freeturn.net:3478',
+                ]}) {
+  const logger = Logger({ moduleName: 'MappingClientManager', logLevel });
+  let mapClient = new MappingClient({ localListenPort, serverKey, logLevel, websocket_url, iceServers});
   mapClient.on('updateMessageBox', messageBox => {
     logger.debug('updateMessageBox', messageBox)
   })
-  mapClient.on('updateStatus', status => {
-    logger.debug(`mapClient updateStatus ${status}`)
+  mapClient.on('error', error => {
+    logger.debug(`mapClient error ${error}`);
   })
   mapClient.on('client_registered', clientId => {
-    logger.info(`client registered`)
+    logger.info(`client registered: ${clientId}`);
     mapClient.registered = true
     mapClient.createPeer()
   })
+  mapClient.on('channel_connected', ({ clientId, channel }) => {
+    logger.debug(`clientId:${clientId}, channel:${channel} connected.`);
+  });
+  mapClient.on('channel_closed', ({ clientId, channel }) => {
+    logger.debug(`clientId:${clientId}, channel:${channel} closed.`);
+  });
+  mapClient.on('peer_connected', clientId => {
+    logger.debug(`clientId:${clientId} connected.`);
+  });
+  mapClient.on('peer_closed', clientId => {
+    logger.debug(`clientId:${clientId} closed.`);
+  });
   mapClient.on('serverMsg', msg => {
     logger.debug(`serverMsg:${msg}`)
   })
