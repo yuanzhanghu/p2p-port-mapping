@@ -145,7 +145,7 @@ export default class MappingClient extends EventEmitter {
     self.peerOffer = new WebRTC("client_peer", this.iceServers);
     self.peerOffer.on('peer_closed', async () => {
       console.log(`self.peerOffer.on('peer_closed') called.`);
-      await self.close()
+      // await self.close()
       self.emit('peer_closed', self.clientId);
       self.peer_connected = false
     })
