@@ -75,10 +75,10 @@ export default class MappingServer extends EventEmitter {
                     self.logger.info(`creating peerAnswer...`)
                     const peerAnswer = new WebRTC("server_peer", this.iceServers);
                     peerAnswer.on('channel_closed', async (channel) => {
-                      self.emit('channel_closed', channel);
+                      self.emit('channel_closed', {clientId, channel});
                     });
                     peerAnswer.on('channel_connected', async (channel) => {
-                      self.emit('channel_connected', channel);
+                      self.emit('channel_connected', {clientId, channel});
                       let ret = peerAnswer.isDefaultChannel(channel)
                       self.logger.info(`server side channel:${channel} connected`)
                       console.log(`server side channel:${channel} connected`)
