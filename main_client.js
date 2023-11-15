@@ -30,16 +30,4 @@ const argv = yargs(hideBin(process.argv))
   .argv;
 
 // This will start the client with the provided arguments
-startClient({
-  localListenPort: argv.port,
-  serverKey: argv.key,
-  logLevel: argv.logLevel,
-}).then((client) => {
-  if (client) {
-    console.log('Client started successfully');
-  } else {
-    console.error('Failed to start client');
-  }
-}).catch((error) => {
-  console.error('An error occurred:', error);
-});
+startClient({ localListenPort: argv.port, serverKey: argv.key, logLevel: argv.logLevel});
