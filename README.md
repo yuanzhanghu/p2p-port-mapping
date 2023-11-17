@@ -3,13 +3,13 @@ p2p port forwarding/mapping across NAT/firewalls, Access your server anywhere.
 <br />
 <a href="https://github.com/yuanzhanghu/p2p-port-mapping/blob/master/README_Chinese.md"><strong>中文说明</strong></a>
 ## Features
-```
-- p2p port forwarding/mapping, no data relay server is needed.
-- No administrator / root privilege is required.
-- NAT traversal without router configuration.
-- support multiple clients and multiple connections for each tunnel.
-- using node-datachannel to establish data tunnel, scp rate can reach upto 400Mbps for the tunnel.
-```
+
+- P2P port forwarding/mapping, eliminating the need for a data relay server.
+- No requirement for administrator or root privileges.
+- NAT traversal without the need for router configuration.
+- Supports multiple clients and multiple connections for each tunnel.
+- Utilizes node-datachannel to establish a data tunnel, with SCP rates reaching up to 400Mbps for the tunnel.
+
 ## Installation
 ```
 1. install nodejs
