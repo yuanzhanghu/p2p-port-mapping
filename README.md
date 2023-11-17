@@ -51,7 +51,8 @@ On computer A (which want to share desktop), enable remote desktop sharing, mapp
 get printed log:
  2023-11-16 17:37:10 mappingServer info: server_registered, local port:3389 ====> serverKey:KJASD2DW2
 ```
-write down the serverKey, which will be used in step 2
+write down the serverKey, which will be used in step 2.
+<br>
 2. on computer B, do this:
 ```
  node main_server.js --key KJASD2DW2 --port 9389 
@@ -59,8 +60,7 @@ write down the serverKey, which will be used in step 2
 get printed log:
 2023-11-16 17:37:41 startClient info: tunnel established. serverKey:KJASD2DW2 ====> local port:9389
 ```
-3. Then  on computer B: we can do remote desktop access to localhost:9389
-which is actually access to A.
+3. Then  on computer B: we can do remote desktop access to localhost:9389, which is actually access to A.
 
 ## Signal Server For WebRTC
 Current signal server is using socket.io running on ai1to1.com, you can run your signal server as well. Source code is located in signal_server/, just run:

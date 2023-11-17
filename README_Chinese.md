@@ -41,14 +41,14 @@ ssh user@localhost -p 9002 上述命令实际上将ssh连接到A计算机。
 得到日志：
  2023-11-16 17:37:10 mappingServer info: server_registered, local port:3389 ====> serverKey:KJASD2DW2
 ```
-记下 serverKey，将在步骤 2 中使用。
+记下 serverKey，将在步骤 2 中使用。 <br>
 2. 在 B 计算机上，执行以下操作：
 ```
  node main_server.js --key KJASD2DW2 --port 9389 
 得到日志：
 2023-11-16 17:37:41 startClient info: tunnel established. serverKey:KJASD2DW2 ====> local port:9389
 ```
-3. 然后在 B 计算机上：我们可以远程桌面访问 localhost:9389 实际上是访问 A 计算机。
+3. 然后在 B 计算机上：我们可以远程桌面访问 localhost:9389, 实际上是访问 A 计算机。
 
 ## WebRTC需要的Signal Server
 当前的信号服务器运行在ai1to1.com, 使用socket.io. 你也可以运行自己的信号服务器， 源码在signal_server/, 运行:
