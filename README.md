@@ -17,7 +17,7 @@ p2p port forwarding/mapping across NAT/firewalls, Access your server anywhere.
 3. cd p2p-port-mapping
 4. npm install
 ```
-## Example 1 (verified on linux)
+## Example1: remote SSH (verified on linux)
 ```
 Assume that we want to do ssh from computer B to computer A across firewalls, we can do port mapping like:
 1. on computer A (which want to share port), mapping port to serverKey:
@@ -42,7 +42,7 @@ ssh user@localhost -p 8082
 above command will ssh to A actually.
 ```
 
-## Example 2 (verified on linux and windows)
+## Example2: remote Desktop (verified on linux and windows)
 1. Assume that we want to do remote desktop access from computer B to computer A across firewalls.
 On computer A (which want to share desktop), enable remote desktop sharing, mapping port to serverKey:
 ```

@@ -18,7 +18,7 @@ p2p内网穿透, 端口转发/端口映射. 跨NAT和防火墙，从任何地方
 3. cd p2p-port-mapping
 4. npm install
 
-## 示例1（在Linux上验证）
+## 示例1: 远程SSH（在Linux上验证）
 假设我们想要从B计算机通过防火墙远程访问A计算机的ssh，我们可以进行端口映射如下：
 1. 在A计算机上（想要共享端口的计算机），将端口映射到serverKey：
  node main_server.js --port 22
@@ -33,7 +33,7 @@ p2p内网穿透, 端口转发/端口映射. 跨NAT和防火墙，从任何地方
 3. 现在我们可以在B上执行以下命令：
 ssh user@localhost -p 9002 上述命令实际上将ssh连接到A计算机。
 
-## 示例2 (已在linux和windows上验证)
+## 示例2: 远程桌面 (已在linux和windows上验证)
 1.假设我们想要从 B 计算机远程访问 A 计算机，并且需要穿越防火墙。 在 A 计算机上（想要共享桌面的那台），启用远程桌面共享，并将端口映射到 serverKey：
 ```
  node main_server.js --port 3389
