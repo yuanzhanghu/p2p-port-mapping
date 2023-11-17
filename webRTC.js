@@ -61,7 +61,7 @@ class WebRTC extends EventEmitter {
           delete this.messageQueues[label];
         }
         if (label in this.sendIntervals) {
-          console.log(`closed sendIntervals2 for channel:${label}`);
+          console.log(`Closing sendInterval for channel: ${label}`);
           clearInterval(this.sendIntervals[label]);
           delete this.sendIntervals[label];
         }
@@ -69,7 +69,7 @@ class WebRTC extends EventEmitter {
         console.error(`Error closing data channel ${label}:`, error);
       }
     } else {
-      console.log(`Data channel with label "${label}" does not exist or has already been closed.`);
+      console.log(`closeDataChannel: Data channel with label "${label}" does not exist or has already been closed.`);
     }
   }
 
@@ -208,14 +208,17 @@ class WebRTC extends EventEmitter {
     console.log(`setup onBufferedAmountLow`);
     this.dataChannels[label].dc.setBufferedAmountLowThreshold(BUFFER_SIZE);
     this.dataChannels[label].dc.onBufferedAmountLow(() => {
-      // console.log(`onBufferedAmountLow triggered`);
       this._tryToSend(label);
     });
   }
 
   _tryToSend(label) {
-    if (!this.messageQueues[label] || !this.dataChannels[label] || !this.dataChannels[label].opened) {
-      console.error(`_tryToSend: message queue or data channel does not exist`);
+    if (!this.messageQueues[label] || !this.dataChannels[label]) {
+      // console.error(`_tryToSend error: channel ${label} does not exist!`);
+      return;
+    }
+    if (!this.dataChannels[label].opened) {
+      console.error(`_tryToSend: channel ${label} not opened yet.`);
       return;
     }
     while (this.messageQueues[label].length > 0 &&

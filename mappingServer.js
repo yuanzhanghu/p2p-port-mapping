@@ -76,6 +76,10 @@ export default class MappingServer extends EventEmitter {
                     const peerAnswer = new WebRTC("server_peer", this.iceServers);
                     peerAnswer.on('channel_closed', async (channel) => {
                       self.emit('channel_closed', {clientId, channel});
+                      if (self.clientDict[clientId] && self.clientDict[clientId].subClientDict[channel]) {
+                        self.logger.info(`clientId:${clientId} subClientId:${channel} closing socket2server`);
+                        self.clientDict[clientId].subClientDict[channel].socket2server.end();
+                      }
                     });
                     peerAnswer.on('channel_connected', async (channel) => {
                       self.emit('channel_connected', {clientId, channel});

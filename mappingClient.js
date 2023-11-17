@@ -8,135 +8,165 @@ import { Logger } from './mylog.js';
 export default class MappingClient extends EventEmitter {
   constructor({ serverKey, localListenPort, logLevel = 'info',
     websocket_url = "https://ai1to1.com",
-    iceServers = [
-      'stun:stun.l.google.com:19302',
-      'turn:free:free@freeturn.net:3478',
-    ]
-  }) {
+    iceServers = ['stun:stun.l.google.com:19302', 'turn:free:free@freeturn.net:3478'] }) {
     super();
     this.logger = Logger({ moduleName: 'mappingClient', logLevel });
     this.serviceKey_client = idGenerate();
     this.logger.debug(`serverKey:${serverKey}, serviceKey_client:${this.serviceKey_client}`);
-
-    this.signalClient = new SignalClient(websocket_url); // Assuming SignalClient doesn't need any params
     this.serverKey = serverKey;
     this.iceServers = iceServers;
+    this.clientId = "client_" + idGenerate();
+    this.peer_connected = false;
+    this.peerOffer = undefined;
+    this.g_subClientId = 0;
+    this.subClientDict = {};
+    this.websocket_url = websocket_url;
+    this.localListenPort = localListenPort;
+    this.client_registered = false;
+
+    // this.client_register();
+  }
+
+  listenLocalPort(localListenPort) {
+    let self = this;
+    self.server = net.createServer();
+    self.server.listen(localListenPort, '127.0.0.1', () => {
+      self.logger.debug(`Local server bound on 127.0.0.1: ${localListenPort}`);
+    });
+
+    self.server.on('connection', (c) => {
+      let subClientId = `subClientId_${self.g_subClientId++}`;
+      self.logger.info(`Local client connected, subClientId:${subClientId}, peer_connected:${self.peer_connected}`);
+
+      if (!self.peer_connected) {
+        self.logger.error('Peer not connected yet.');
+        c.end();
+        return;
+      }
+
+      self.setupClientSocket(c, subClientId);
+    });
+
+    self.server.on('error', (err) => {
+      self.logger.error(`Server error: ${err.toString()}`);
+      self.emit('error', err.toString());
+    });
+  }
+
+  setupClientSocket(c, subClientId) {
     let self = this;
 
-    self.server = net.createServer();
-    this.server.listen(localListenPort, '127.0.0.1', () => {
-      this.logger.debug(`local server bound on 127.0.0.1: ${localListenPort}`);
-    });
-    self.peer_connected = false
-    self.peerOffer = undefined
-    self.g_subClientId = 0
-    self.subClientDict = {} // to save each clientSocket for subClient
-    self.clientId = "client_" + idGenerate()
-
-    self.server.on('connection', c => { // local server which map to remote server.
-      // 'connection' listener
-      let subClientId = `subClientId_${self.g_subClientId}`;
-      self.logger.info(`local client connected, subClientId:${subClientId}, peer_connected:${self.peer_connected}`)
-      if (!self.peer_connected) {
-        self.logger.error('peer not connected yet.')
-        c.end()
-        return
+    c.on('data', (data) => {
+      if (self.peer_connected) {
+        self.peerOffer.sendBuf(data, subClientId);
+      } else {
+        self.logger.error('Peer not connected, shutdown local socket for subClientId:', subClientId);
+        c.end();
       }
-      c.on('data', (data) => {
-        if (self.peer_connected) {
-          // self.logger.info(`local socket data: ${data}`);
-          // Define the sendLogic as an async function with a retry limit
-          //self.logger.debug(`${subClientId} channel connected, sending data: ${data}`);
-          // console.log(`client -> wrtc`);
-          self.peerOffer.sendBuf(data, subClientId);
-        } else {
-          self.logger.error('Peer not connected, shutdown local socket for subClientId:', subClientId);
-          c.end(); // Close the socket.
-        }
-      });
-      c.on('error', (e) => {
-        self.logger.error(`local socket error:${e}`)
-      })
-      c.on('end', () => {
-        // self.logger.info('client dispeer_connected, subClientId:', subClientId)
-      })
-      c.on('close', err => {
-        self.logger.info(`subClientId:${subClientId} closed, err:${err}`)
-        if (self.peerOffer) {
-          self.peerOffer.closeDataChannel(subClientId)
-        }
-        delete self.subClientDict[subClientId]
-      })
-      self.peerOffer.createDataChannel(subClientId);
-      self.subClientDict[subClientId] = { subClientSocket: c, subClientId };
-      self.emit('connection', { clientId: self.clientId, subClientId: self.subClientId });
-      self.g_subClientId += 1
-    })
-    self.server.on('error', (err) => {
-      // throw err
-      self.logger.error(`emitting errMsg:${err.toString()}`)
-      self.emit('error', err.toString())
-    })
+    });
+
+    c.on('error', (e) => {
+      self.logger.error(`Local socket error: ${e}`);
+    });
+
+    c.on('end', () => {
+      // Client disconnected
+    });
+
+    c.on('close', (err) => {
+      self.logger.info(`SubClientId:${subClientId} closed, err: ${err}`);
+      if (self.peerOffer) {
+        self.peerOffer.closeDataChannel(subClientId);
+      }
+      delete self.subClientDict[subClientId];
+    });
+
+    self.peerOffer.createDataChannel(subClientId);
+    self.subClientDict[subClientId] = { subClientSocket: c, subClientId };
+    self.emit('connection', { clientId: self.clientId, subClientId });
+  }
+
+  client_register() {
+    let self = this;
+    self.logger.info(`MappingClient: client_register() is called`);
+    this.listenLocalPort(this.localListenPort);
+    self.signalClient = new SignalClient(this.websocket_url);
 
     self.signalClient.on('close', () => {
-      self.logger.info('signal server disconnected')
-    })
+      self.logger.info('Signal server disconnected');
+      self.client_registered = false;
+    });
+
     self.signalClient.on('connect', () => {
       self.signalClient.client_register({
         serverKey: self.serverKey,
-        serviceKey_client: self.serviceKey_client, clientId: self.clientId
-      })
-    })
+        serviceKey_client: self.serviceKey_client,
+        clientId: self.clientId
+      });
+    });
+
     self.signalClient.on('message', (msgObj) => {
-      let { msgType, data } = msgObj
-      if (msgType === 'client_registered') {
-        const { clientId, server_key } = data
-        self.logger.info(`client_registered:${clientId}, server_key:${serverKey}`);
-        self.emit('client_registered', { clientId, serverKey })
-      } else
-        if (msgType === 'messageBox') {
-          self.emit('updateMessageBox', data)
-        } else
-          if (msgType === 'errMsg') {
-            self.logger.error(`error:${JSON.stringify(data)}`)
-            self.emit('error', JSON.stringify(data))
-          } else
-            if (msgType === 'serverSignal') {
-              let { event, serverKey, clientId, subClientId, buf } = data
-              self.logger.info(`subClientId:${subClientId}, event:${event}, buf:${buf}`)
-              switch (event) {
-                case 'server_signal_description': {
-                  self.peerOffer.setRemoteDescription(buf)
-                  break
-                }
-                case 'server_signal_candidate': {
-                  self.logger.info(`mappingClient: addRemoteCandidate ${JSON.stringify(buf)}`);
-                  self.peerOffer.addRemoteCandidate(buf)
-                  break
-                }
-                case 'errMsg': {
-                  self.logger.error(`error:${JSON.stringify(data)}`)
-                  break
-                }
-                case 'serverMsg': {
-                  self.emit('serverMsg', buf)
-                  break
-                }
-                case 'remoteServer_connected': {
-                  break
-                }
-                case 'remoteServer_disconnected': {
-                  break
-                }
-                case 'remoteServer_error_connect': {
-                  break
-                }
-                default: {
-                  self.logger.error(`unknown event:${event}`)
-                }
-              }
-            }
-    })
+      let { msgType, data } = msgObj;
+
+      switch (msgType) {
+        case 'client_registered':
+          const { clientId, server_key } = data;
+          self.logger.info(`Client registered: ${clientId}, server_key: ${server_key}`);
+          self.client_registered = true;
+          self.emit('client_registered', { clientId, server_key });
+          break;
+        case 'messageBox':
+          self.emit('updateMessageBox', data);
+          break;
+        case 'errMsg':
+          self.logger.error(`Error: ${JSON.stringify(data)}`);
+          self.emit('error', JSON.stringify(data));
+          break;
+        case 'serverSignal':
+          self.handleServerSignal(data);
+          break;
+        // Add other cases as needed
+      }
+    });
+  }
+
+  handleServerSignal(data) {
+    let { event, serverKey, clientId, subClientId, buf } = data;
+    this.logger.info(`SubClientId: ${subClientId}, event: ${event}, buf: ${buf}`);
+
+    switch (event) {
+      case 'server_signal_description':
+        this.peerOffer.setRemoteDescription(buf);
+        break;
+      case 'server_signal_candidate':
+        this.peerOffer.addRemoteCandidate(buf);
+        break;
+      case 'errMsg':
+        this.logger.error(`Error: ${JSON.stringify(data)}`);
+        break;
+      case 'serverMsg':
+        this.emit('serverMsg', buf);
+        break;
+      case 'remoteServer_connected':
+        // Handle remote server connected event
+        break;
+      case 'remoteServer_disconnected':
+        // Handle remote server disconnected event
+        break;
+      case 'remoteServer_error_connect':
+        // Handle remote server connection error
+        break;
+      default:
+        this.logger.error(`Unknown event: ${event}`);
+    }
+  }
+
+  isRegistered2SignalServer() {
+    return this.client_registered;
+  }
+
+  isPeerConnected() {
+    return this.peer_connected;
   }
 
   createPeer() {
@@ -211,23 +241,23 @@ export default class MappingClient extends EventEmitter {
   async close() {
     let self = this
     if (this.peerOffer) {
-      console.log('closing peerOffer')
       self.logger.info('closing peerOffer')
       await this.peerOffer.close()
       this.peerOffer = null
+      self.logger.info('closed peerOffer')
     }
     if (this.server) {
-      console.log('closing local socket server')
       self.logger.info('closing local socket server')
       this.server.close()
       this.server = null
+      self.logger.info('closed local socket server')
     }
     if (this.signalClient) {
-      console.log('closing signalClient')
       self.logger.info('closing signalClient')
       // this.signalClient.disconnect(true)
       this.signalClient.close()
       this.signalClient = null
+      self.logger.info('closed signalClient')
     }
   }
 }
