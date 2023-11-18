@@ -17,8 +17,8 @@ export default async function ({
     logger.info(`mapClient error ${error}`);
   });
 
-  mapClient.on('client_registered', clientId => {
-    logger.info(`client registered: ${clientId}`);
+  mapClient.on('client_registered', ({clientId, serverKey}) => {
+    logger.info(`client registered: ${clientId}, serverKey:${serverKey}`);
   });
 
   mapClient.on('channel_connected', ({ clientId, channel }) => {

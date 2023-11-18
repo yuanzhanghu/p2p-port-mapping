@@ -30,14 +30,14 @@ class SignalManagement(object):
         self._save_to_file(self.global_mapping, self.MAPPING_FILE)
 
     def client_send_signal(self, data):
-        server_key, clientId, event, buf = (
+        serverKey, clientId, event, buf = (
             data["serverKey"],
             data["clientId"],
             data["event"],
             data["buf"],
         )
-        if server_key in self.global_mapping:
-            if clientId not in self.global_mapping[server_key]["clientlist"]:
+        if serverKey in self.global_mapping:
+            if clientId not in self.global_mapping[serverKey]["clientlist"]:
                 return {
                     "msgType": "errMsg",
                     "data": {
@@ -45,7 +45,7 @@ class SignalManagement(object):
                     },
                 }
             # Forwarding the signal to the server (the exact forwarding mechanism depends on your implementation)
-            ws_session_id = self.global_mapping[server_key].get("ws_session_id")
+            ws_session_id = self.global_mapping[serverKey].get("ws_session_id")
             if ws_session_id:
                 self.websocket_msg_queue.put(
                     (
@@ -61,24 +61,24 @@ class SignalManagement(object):
                 return {
                     "msgType": "errMsg",
                     "data": {
-                        "errMsg": f"server_key:{server_key} websocket not established"
+                        "errMsg": f"serverKey:{serverKey} websocket not established"
                     },
                 }
         return {
             "msgType": "errMsg",
-            "data": {"errMsg": f"serverKey: {server_key} does not exist"},
+            "data": {"errMsg": f"serverKey: {serverKey} does not exist"},
         }
 
     def server_send_signal(self, data):
         # Extract necessary details
-        server_key, clientId, event, buf = (
+        serverKey, clientId, event, buf = (
             data["serverKey"],
             data["clientId"],
             data["event"],
             data["buf"],
         )
-        if server_key in self.global_mapping:
-            if clientId not in self.global_mapping[server_key]["clientlist"]:
+        if serverKey in self.global_mapping:
+            if clientId not in self.global_mapping[serverKey]["clientlist"]:
                 return {
                     "msgType": "errMsg",
                     "data": {
@@ -108,14 +108,14 @@ class SignalManagement(object):
         else:
             return {
                 "msgType": "errMsg",
-                "data": {"errMsg": f"serverKey: {server_key} does not exist"},
+                "data": {"errMsg": f"serverKey: {serverKey} does not exist"},
             }
 
     def server_keep_alive(self, data, ws_session_id):
         print(f"server_keep_alive, data:{data}", flush=True)
-        server_key = data["serverKey"]
-        self.global_mapping.setdefault(server_key, {})
-        self.global_mapping[server_key]["ws_session_id"] = ws_session_id
+        serverKey = data["serverKey"]
+        self.global_mapping.setdefault(serverKey, {})
+        self.global_mapping[serverKey]["ws_session_id"] = ws_session_id
         self.save_mapping()
         return {"data": "OK"}
 
@@ -129,26 +129,26 @@ class SignalManagement(object):
 
     def server_register(self, data, ws_session_id):
         print(f"server_register, data:{data}", flush=True)
-        server_key = data["serverKey"]
-        self.global_mapping.setdefault(server_key, {})
-        self.global_mapping[server_key].setdefault("clientlist", [])
-        self.global_mapping[server_key]["ws_session_id"] = ws_session_id
+        serverKey = data["serverKey"]
+        self.global_mapping.setdefault(serverKey, {})
+        self.global_mapping[serverKey].setdefault("clientlist", [])
+        self.global_mapping[serverKey]["ws_session_id"] = ws_session_id
         self.save_mapping()
         return {
             "msgType": "server_registered",
-            "data": {"success": True, "serverKey": server_key},
+            "data": {"success": True, "serverKey": serverKey},
         }
 
     def client_register(self, data, ws_session_id):
         print(f"client_register, data:{data}", flush=True)
-        server_key, clientId = data["serverKey"], data["clientId"]
-        self.global_mapping[server_key]["clientlist"].append(clientId)
+        serverKey, clientId = data["serverKey"], data["clientId"]
+        self.global_mapping[serverKey]["clientlist"].append(clientId)
         self.global_mapping.setdefault(clientId, {})
         self.global_mapping[clientId]["ws_session_id"] = ws_session_id
         self.save_mapping()
         return {
             "msgType": "client_registered",
-            "data": {"clientId": clientId, "server_key": server_key,
+            "data": {"clientId": clientId, "serverKey": serverKey,
                      "success": True},
         }
 

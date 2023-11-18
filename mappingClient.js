@@ -110,10 +110,10 @@ export default class MappingClient extends EventEmitter {
 
       switch (msgType) {
         case 'client_registered':
-          const { clientId, server_key } = data;
-          self.logger.info(`Client registered: ${clientId}, server_key: ${server_key}`);
+          const { clientId, serverKey } = data;
+          self.logger.info(`Client registered: ${clientId}, serverKey: ${serverKey}`);
           self.client_registered = true;
-          self.emit('client_registered', { clientId, server_key });
+          self.emit('client_registered', { clientId, serverKey });
           break;
         case 'messageBox':
           self.emit('updateMessageBox', data);
