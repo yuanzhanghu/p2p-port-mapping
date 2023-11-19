@@ -35,15 +35,19 @@ ssh user@localhost -p 9002 上述命令实际上将ssh连接到A计算机。
 
 ## 示例2: 远程桌面 (已在linux和windows上验证)
 
-1.假设我们想要从 B 计算机远程访问 A 计算机，并且需要穿越防火墙。 在 A 计算机上（想要共享桌面的那台），启用远程桌面共享，并将端口映射到 serverKey：<br>
- node main_server.js --port 3389<br>
-得到日志：<br>
- 2023-11-16 17:37:10 mappingServer info: server_registered, local port:3389 ====> serverKey:KJASD2DW2<br>
+1.假设我们想要从 B 计算机远程访问 A 计算机，并且需要穿越防火墙。 在 A 计算机上（想要共享桌面的那台），启用远程桌面共享，并将端口映射到 serverKey：
+```
+ node main_server.js --port 3389
+得到日志：
+ 2023-11-16 17:37:10 mappingServer info: server_registered, local port:3389 ====> serverKey:KJASD2DW2
+```
 记下 serverKey，将在步骤 2 中使用。 <br>
 2.在 B 计算机上，执行以下操作：<br>
+```
  node main_server.js --key KJASD2DW2 --port 9389 
-得到日志：<br>
-2023-11-16 17:37:41 startClient info: tunnel established. serverKey:KJASD2DW2 ====> local port:9389<br>
+得到日志：
+2023-11-16 17:37:41 startClient info: tunnel established. serverKey:KJASD2DW2 ====> local port:9389
+```
 3.然后在 B 计算机上：我们可以远程桌面访问 localhost:9389, 实际上是访问 A 计算机。<br>
 
 ## WebRTC需要的Signal Server
