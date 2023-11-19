@@ -56,7 +56,7 @@ write down the serverKey, which will be used in step 2.<br>
 
 2.on computer B, do this: <br>
 ```
- node main_server.js --key KJASD2DW2 --port 9389
+ node main_client.js --key KJASD2DW2 --port 9389
 
 get printed log:
 2023-11-16 17:37:41 startClient info: tunnel established. serverKey:KJASD2DW2 ====> local port:9389
