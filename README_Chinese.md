@@ -44,7 +44,7 @@ ssh user@localhost -p 9002 上述命令实际上将ssh连接到A计算机。
 记下 serverKey，将在步骤 2 中使用。 <br>
 2.在 B 计算机上，执行以下操作：<br>
 ```
- node main_server.js --key KJASD2DW2 --port 9389 
+ node main_client.js --key KJASD2DW2 --port 9389 
 得到日志：
 2023-11-16 17:37:41 startClient info: tunnel established. serverKey:KJASD2DW2 ====> local port:9389
 ```
