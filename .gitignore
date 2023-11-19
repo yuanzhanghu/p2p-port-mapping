@@ -6,3 +6,4 @@ win-x64-bin/
 *.zip
 config.json
 yarn.lock
+package-lock.json

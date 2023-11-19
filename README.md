@@ -5,6 +5,7 @@ p2p port forwarding/mapping across NAT/firewalls, Access your server anywhere.
 ## Features
 
 - P2P port forwarding/mapping, eliminating the need for a data relay server.
+- P2P TLS encrypted port forwading/mapping, keep your data secure.
 - No requirement for administrator or root privileges.
 - NAT traversal without the need for router configuration.
 - Supports multiple clients and multiple connections for each tunnel.
