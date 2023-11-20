@@ -74,7 +74,7 @@ export default class MappingClient extends EventEmitter {
     });
 
     c.on('close', (err) => {
-      self.logger.info(`SubClientId:${subClientId} closed, err: ${err}`);
+      self.logger.info(`SubClientId:${subClientId} local socket closed, err: ${err}`);
       if (self.peerOffer) {
         self.peerOffer.closeDataChannel(subClientId);
       }
