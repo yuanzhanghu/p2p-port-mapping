@@ -18,7 +18,9 @@ p2p port forwarding/mapping across NAT/firewalls, Access your server anywhere.
 3. cd p2p-port-mapping
 4. npm install
 ```
+
 ## Example1: remote SSH (verified on linux)
+
 ```
 Assume that we want to do ssh from computer B to computer A across firewalls, we can do port mapping like:
 1. on computer A (which want to share port), mapping port to serverKey:
@@ -55,13 +57,12 @@ get printed log:
 write down the serverKey, which will be used in step 2.
 
 2.on computer B, do this: 
-```
  node main_client.js --key KJASD2DW2 --port 9389
 
 get printed log:
 2023-11-16 17:37:41 startClient info: tunnel established. serverKey:KJASD2DW2 ====> local port:9389
-```
 3.Then  on computer B: we can do remote desktop access to localhost:9389, which is actually accessing to A.
+```
 
 ## Signal Server For WebRTC
 Current signal server is using socket.io running on ai1to1.com, you can run your signal server as well. Source code is located in signal_server/, just run:
