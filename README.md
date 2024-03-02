@@ -2,7 +2,6 @@
 p2p port forwarding/mapping across NAT/firewalls, Access your server anywhere.
 <br />
 <a href="https://github.com/yuanzhanghu/p2p-port-mapping/blob/master/README_Chinese.md"><strong>中文说明</strong></a>
-
 ## Features
 
 - P2P port forwarding/mapping, eliminating the need for a data relay server.
